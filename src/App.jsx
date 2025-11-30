@@ -39,6 +39,7 @@ function App() {
   const [showTeamIdModal, setShowTeamIdModal] = useState(false);
   const [filterDropdownOpen, setFilterDropdownOpen] = useState(false);
   const [teamDropdownOpen, setTeamDropdownOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // User's FPL team ID from localStorage
   const [myTeamId, setMyTeamId] = useState(() => {
@@ -324,8 +325,8 @@ function App() {
             </div>
           </div>
 
-        {/* Top right buttons */}
-        <div className="top-right-btns">
+        {/* Top right buttons - desktop */}
+        <div className="top-right-btns top-right-btns--desktop">
           {viewMode !== 'top' && (
             <button
               className="back-btn"
@@ -340,6 +341,43 @@ function App() {
           >
             {myTeamLoading ? 'Loading...' : 'My Team'}
           </button>
+        </div>
+
+        {/* Burger menu - mobile */}
+        <div className="burger-menu">
+          <button
+            className={`burger-menu__toggle ${mobileMenuOpen ? 'open' : ''}`}
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            aria-label="Menu"
+          >
+            <span></span>
+            <span></span>
+            <span></span>
+          </button>
+          {mobileMenuOpen && (
+            <div className="burger-menu__dropdown">
+              {viewMode !== 'top' && (
+                <button
+                  className="burger-menu__item"
+                  onClick={() => {
+                    handleBackToTop();
+                    setMobileMenuOpen(false);
+                  }}
+                >
+                  ← Back to Top
+                </button>
+              )}
+              <button
+                className="burger-menu__item"
+                onClick={() => {
+                  handleMyTeamClick();
+                  setMobileMenuOpen(false);
+                }}
+              >
+                {myTeamLoading ? 'Loading...' : 'My Team'}
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Team ID Modal */}

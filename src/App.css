@@ -246,6 +246,91 @@
   background: rgba(255, 255, 255, 0.1);
 }
 
+/* Burger Menu - hidden on desktop */
+.burger-menu {
+  display: none;
+  position: absolute;
+  top: var(--space-lg);
+  right: 20px;
+  z-index: 100;
+}
+
+.burger-menu__toggle {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 5px;
+  width: 40px;
+  height: 40px;
+  background: var(--bg-elevated);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.burger-menu__toggle:hover {
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+.burger-menu__toggle span {
+  display: block;
+  width: 18px;
+  height: 2px;
+  background: white;
+  border-radius: 1px;
+  transition: all 0.3s ease;
+}
+
+.burger-menu__toggle.open span:nth-child(1) {
+  transform: translateY(7px) rotate(45deg);
+}
+
+.burger-menu__toggle.open span:nth-child(2) {
+  opacity: 0;
+}
+
+.burger-menu__toggle.open span:nth-child(3) {
+  transform: translateY(-7px) rotate(-45deg);
+}
+
+.burger-menu__dropdown {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  min-width: 160px;
+  margin-top: var(--space-xs);
+  background: var(--bg-elevated);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+
+.burger-menu__item {
+  display: block;
+  width: 100%;
+  padding: 12px 16px;
+  background: transparent;
+  border: none;
+  color: var(--text-primary);
+  font-family: 'Geist Mono', monospace;
+  font-size: 13px;
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+  transition: background var(--transition-fast);
+}
+
+.burger-menu__item:hover {
+  background: var(--bg-hover);
+}
+
+.burger-menu__item:not(:last-child) {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
 /* Sort Buttons */
 .sort-group {
   display: flex;
@@ -899,25 +984,13 @@
 
 
 @media (max-width: 767px) {
-  /* Center the My Team/Back buttons */
-  .top-right-btns {
-    position: static;
-    justify-content: center;
-    width: 100%;
-    margin-bottom: var(--space-md);
+  /* Hide desktop buttons, show burger */
+  .top-right-btns--desktop {
+    display: none;
   }
 
-  /* Stack header content with buttons on top */
-  .app-header {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding-top: var(--space-lg);
-  }
-
-  /* Push logo down with margin */
-  .app-header__title {
-    margin-top: var(--space-sm);
+  .burger-menu {
+    display: block;
   }
 
   .app-header__name {
