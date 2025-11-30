@@ -71,6 +71,20 @@
   margin: 0;
 }
 
+.my-team-modal__id-row {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.my-team-modal__id {
+  font-family: 'Geist Mono', monospace;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
 .my-team-modal__change-btn {
   font-family: 'Geist Mono', monospace;
   font-size: 10px;
@@ -313,6 +327,10 @@
   .my-team-modal__info {
     width: 100%;
     text-align: center;
+  }
+
+  .my-team-modal__id-row {
+    justify-content: center;
   }
 
   .my-team-modal__stats {

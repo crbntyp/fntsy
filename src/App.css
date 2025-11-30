@@ -250,7 +250,7 @@
 .burger-menu {
   display: none;
   position: absolute;
-  top: var(--space-lg);
+  top: 50px;
   right: 20px;
   z-index: 100;
 }
@@ -264,7 +264,7 @@
   width: 40px;
   height: 40px;
   background: var(--bg-elevated);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 0;
   border-radius: var(--radius-sm);
   cursor: pointer;
   transition: all var(--transition-fast);
@@ -579,7 +579,7 @@
 .team-banner__left {
   display: flex;
   align-items: center;
-  gap: 0;
+  gap: 10px;
 }
 
 .team-banner__badge {

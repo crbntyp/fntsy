@@ -364,7 +364,7 @@ function App() {
                     setMobileMenuOpen(false);
                   }}
                 >
-                  ← Back to Top
+                  Home
                 </button>
               )}
               <button

@@ -37,12 +37,12 @@ export default function MyTeam({ myTeam, isLive, onClose, onClearTeam }) {
             <h2 className="my-team-modal__name">{myTeam.name}</h2>
             <p className="my-team-modal__manager">{myTeam.managerName}</p>
           </div>
-          {onClearTeam && (
-            <button className="my-team-modal__change-btn" onClick={onClearTeam}>
-              Change
-            </button>
-          )}
           <div className="my-team-modal__stats">
+            {onClearTeam && (
+              <button className="my-team-modal__change-btn" onClick={onClearTeam}>
+                Change Team
+              </button>
+            )}
             <div className="my-team-modal__stat">
               <span className="my-team-modal__stat-value">{calculatedGWPoints}</span>
               <span className="my-team-modal__stat-label">GW</span>
