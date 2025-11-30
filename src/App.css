@@ -494,7 +494,7 @@
 .team-banner__left {
   display: flex;
   align-items: center;
-  gap: var(--space-lg);
+  gap: 0;
 }
 
 .team-banner__badge {
