@@ -52,6 +52,84 @@ const STADIUMS = {
   'IPS': 'Portman Road',
 };
 
+// Stadium capacities
+const CAPACITIES = {
+  'ARS': 60704,
+  'AVL': 42640,
+  'BOU': 11307,
+  'BRE': 17250,
+  'BHA': 31800,
+  'BUR': 21944,
+  'CHE': 40343,
+  'CRY': 25486,
+  'EVE': 39414,
+  'FUL': 25700,
+  'IPS': 30311,
+  'LEE': 37792,
+  'LEI': 32312,
+  'LIV': 61276,
+  'MCI': 53400,
+  'MUN': 74310,
+  'NEW': 52305,
+  'NFO': 30455,
+  'SOU': 32384,
+  'SUN': 48707,
+  'TOT': 62850,
+  'WHU': 62500,
+  'WOL': 31750,
+};
+
+// Current managers (2024/25 season)
+const MANAGERS = {
+  'ARS': 'Mikel Arteta',
+  'AVL': 'Unai Emery',
+  'BOU': 'Andoni Iraola',
+  'BRE': 'Keith Andrews',
+  'BHA': 'Fabian Hürzeler',
+  'BUR': 'Scott Parker',
+  'CHE': 'Enzo Maresca',
+  'CRY': 'Oliver Glasner',
+  'EVE': 'David Moyes',
+  'FUL': 'Marco Silva',
+  'IPS': 'Kieran McKenna',
+  'LEE': 'Daniel Farke',
+  'LEI': 'Ruud van Nistelrooy',
+  'LIV': 'Arne Slot',
+  'MCI': 'Pep Guardiola',
+  'MUN': 'Ruben Amorim',
+  'NEW': 'Eddie Howe',
+  'NFO': 'Sean Dyche',
+  'SOU': 'Ivan Jurić',
+  'SUN': 'Régis Le Bris',
+  'TOT': 'Thomas Frank',
+  'WHU': 'Nuno Espírito Santo',
+  'WOL': 'Rob Edwards',
+};
+
+// Primary kit colors (hex)
+const KIT_COLORS = {
+  'ARS': { primary: '#EF0107', secondary: '#FFFFFF' },
+  'AVL': { primary: '#670E36', secondary: '#95BFE5' },
+  'BOU': { primary: '#DA291C', secondary: '#000000' },
+  'BRE': { primary: '#E30613', secondary: '#FBB800' },
+  'BHA': { primary: '#0057B8', secondary: '#FFFFFF' },
+  'CHE': { primary: '#034694', secondary: '#FFFFFF' },
+  'CRY': { primary: '#1B458F', secondary: '#C4122E' },
+  'EVE': { primary: '#003399', secondary: '#FFFFFF' },
+  'FUL': { primary: '#FFFFFF', secondary: '#000000' },
+  'IPS': { primary: '#0044AA', secondary: '#FFFFFF' },
+  'LEI': { primary: '#003090', secondary: '#FDBE11' },
+  'LIV': { primary: '#C8102E', secondary: '#FFFFFF' },
+  'MCI': { primary: '#6CABDD', secondary: '#FFFFFF' },
+  'MUN': { primary: '#DA291C', secondary: '#FBE122' },
+  'NEW': { primary: '#241F20', secondary: '#FFFFFF' },
+  'NFO': { primary: '#DD0000', secondary: '#FFFFFF' },
+  'SOU': { primary: '#D71920', secondary: '#FFFFFF' },
+  'TOT': { primary: '#FFFFFF', secondary: '#132257' },
+  'WHU': { primary: '#7A263A', secondary: '#1BB1E7' },
+  'WOL': { primary: '#FDB913', secondary: '#231F20' },
+};
+
 // Check if player has left permanently (not loans - they're still playing)
 const hasLeftPermanently = (player) => {
   const news = player.news?.toLowerCase() || '';
@@ -164,6 +242,9 @@ export function useFPLData() {
             name: t.name,
             shortName: t.short_name,
             stadium: STADIUMS[t.short_name] || null,
+            capacity: CAPACITIES[t.short_name] || null,
+            manager: MANAGERS[t.short_name] || null,
+            kitColors: KIT_COLORS[t.short_name] || null,
             strength: t.strength,
             strengthHome: t.strength_overall_home,
             strengthAway: t.strength_overall_away,

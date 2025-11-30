@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from 'react';
-import { useFPLData, useMyTeam, getTopPlayersByPosition, getPlayersByTeam } from './hooks/useFPLData';
+import { useFPLData, useMyTeam, getTopPlayersByPosition, getPlayersByTeam, getTeamUpcoming } from './hooks/useFPLData';
 import PlayerCard from './components/PlayerCard';
 import ResultsTicker from './components/ResultsTicker';
 import MyTeam from './components/MyTeam';
@@ -37,8 +37,8 @@ function App() {
   const [sortBy, setSortBy] = useState('livePoints');
   const [showMyTeam, setShowMyTeam] = useState(false);
   const [showTeamIdModal, setShowTeamIdModal] = useState(false);
-  const [teamDropdownOpen, setTeamDropdownOpen] = useState(false);
   const [filterDropdownOpen, setFilterDropdownOpen] = useState(false);
+  const [teamDropdownOpen, setTeamDropdownOpen] = useState(false);
 
   // User's FPL team ID from localStorage
   const [myTeamId, setMyTeamId] = useState(() => {
@@ -95,6 +95,41 @@ function App() {
     setShowTeamIdModal(true);
   };
 
+  // Handle team selection with URL hash
+  const selectTeam = (team) => {
+    setViewMode('team');
+    setSelectedTeamId(team.id);
+    window.location.hash = team.shortName.toLowerCase();
+  };
+
+  // Handle back to top view
+  const handleBackToTop = () => {
+    setViewMode('top');
+    setSelectedTeamId(null);
+    window.location.hash = '';
+  };
+
+  // Handle URL hash on load and hash change
+  useEffect(() => {
+    const handleHashChange = () => {
+      const hash = window.location.hash.slice(1).toLowerCase();
+      if (hash && data?.teams) {
+        const team = data.teams.find(t => t.shortName.toLowerCase() === hash);
+        if (team) {
+          setViewMode('team');
+          setSelectedTeamId(team.id);
+        }
+      } else if (!hash) {
+        setViewMode('top');
+        setSelectedTeamId(null);
+      }
+    };
+
+    handleHashChange();
+    window.addEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('hashchange', handleHashChange);
+  }, [data?.teams]);
+
   // Get displayed players based on view mode
   const displayData = useMemo(() => {
     if (!data) return null;
@@ -107,10 +142,12 @@ function App() {
     } else {
       const teamId = selectedTeamId || data.teams[0]?.id;
       const team = data.teams.find(t => t.id === teamId);
+      const nextFixtures = getTeamUpcoming(data.allFixtures, teamId, 1);
       return {
         type: 'team',
         team,
-        players: getPlayersByTeam(data.players, teamId)
+        players: getPlayersByTeam(data.players, teamId),
+        nextFixture: nextFixtures[0] || null
       };
     }
   }, [data, viewMode, selectedTeamId, sortBy]);
@@ -145,10 +182,7 @@ function App() {
               <button
                 key={team.id}
                 className={`app-header__team-btn ${viewMode === 'team' && selectedTeamId === team.id ? 'active' : ''}`}
-                onClick={() => {
-                  setViewMode('team');
-                  setSelectedTeamId(team.id);
-                }}
+                onClick={() => selectTeam(team)}
                 title={team.name}
               >
                 <img
@@ -162,184 +196,151 @@ function App() {
         </header>
 
         {/* Controls */}
-        <div className="controls">
-          <div className="controls__left">
-            {/* Back button when not in top view */}
-            {viewMode !== 'top' && (
-              <button
-                className="toggle-btn"
-                onClick={() => setViewMode('top')}
-              >
-                ← Back
-              </button>
-            )}
-
-            {/* Sort buttons - left group (desktop) */}
-            {viewMode === 'top' && (
-              <div className="sort-group sort-group--desktop">
-                {getSortOptions(isLive, data?.currentGameweek).left.map(opt => (
-                  <button
-                    key={opt.value}
-                    className={`sort-btn ${sortBy === opt.value ? 'active' : ''}`}
-                    onClick={() => setSortBy(opt.value)}
-                  >
-                    {opt.label}
-                  </button>
-                ))}
-              </div>
-            )}
-
-            {/* Team Selector - only show in team view (desktop) */}
-            {viewMode === 'team' && (
-              <select
-                value={selectedTeamId || teams[0]?.id}
-                onChange={(e) => setSelectedTeamId(Number(e.target.value))}
-                className="team-select team-select--desktop"
-              >
-                {teams.map(team => (
-                  <option key={team.id} value={team.id}>
-                    {team.name}
-                  </option>
-                ))}
-              </select>
-            )}
-
-            {/* Mobile dropdowns container */}
-            <div className="controls__mobile-dropdowns">
-              {/* Team Dropdown - mobile */}
-              <div className="filter-dropdown">
-                <button
-                  className="filter-dropdown__trigger"
-                  onClick={() => {
-                    setTeamDropdownOpen(!teamDropdownOpen);
-                    setFilterDropdownOpen(false);
-                  }}
-                >
-                  {selectedTeamId ? (
-                    <>
-                      <img
-                        src={`https://resources.premierleague.com/premierleague/badges/100/t${teams.find(t => t.id === selectedTeamId)?.code}@x2.png`}
-                        alt=""
-                        className="filter-dropdown__badge"
-                      />
-                      <span>{teams.find(t => t.id === selectedTeamId)?.shortName}</span>
-                    </>
-                  ) : (
-                    <span>All Teams</span>
-                  )}
-                  <svg className="filter-dropdown__arrow" width="10" height="10" viewBox="0 0 16 16" fill="currentColor">
-                    <path d="M8 11L3 6h10l-5 5z" />
-                  </svg>
-                </button>
-                {teamDropdownOpen && (
-                  <div className="filter-dropdown__menu">
+        <div className={`controls ${viewMode === 'team' ? 'controls--team-view' : ''}`}>
+            <div className="controls__left">
+              {/* Sort buttons - left group (desktop, only on top view) */}
+              {viewMode === 'top' && (
+                <div className="sort-group sort-group--desktop">
+                  {getSortOptions(isLive, data?.currentGameweek).left.map(opt => (
                     <button
-                      className={`filter-dropdown__item ${!selectedTeamId ? 'active' : ''}`}
-                      onClick={() => {
-                        setViewMode('top');
-                        setSelectedTeamId(null);
-                        setTeamDropdownOpen(false);
-                      }}
+                      key={opt.value}
+                      className={`sort-btn ${sortBy === opt.value ? 'active' : ''}`}
+                      onClick={() => setSortBy(opt.value)}
                     >
-                      <span>All Teams</span>
+                      {opt.label}
                     </button>
-                    {teams.map(team => (
-                      <button
-                        key={team.id}
-                        className={`filter-dropdown__item ${selectedTeamId === team.id ? 'active' : ''}`}
-                        onClick={() => {
-                          setViewMode('team');
-                          setSelectedTeamId(team.id);
-                          setTeamDropdownOpen(false);
-                        }}
-                      >
-                        <img
-                          src={`https://resources.premierleague.com/premierleague/badges/100/t${team.code}@x2.png`}
-                          alt=""
-                          className="filter-dropdown__badge"
-                        />
-                        <span>{team.name}</span>
-                      </button>
-                    ))}
+                  ))}
+                </div>
+              )}
+
+              {/* Mobile dropdowns container */}
+              <div className="controls__mobile-dropdowns">
+                {/* Filter Dropdown - mobile (only on top view) */}
+                {viewMode === 'top' && (
+                  <div className="filter-dropdown">
+                    <button
+                      className="filter-dropdown__trigger"
+                      onClick={() => setFilterDropdownOpen(!filterDropdownOpen)}
+                    >
+                      <span>{[...getSortOptions(isLive, data?.currentGameweek).left, ...getSortOptions(isLive, data?.currentGameweek).right].find(opt => opt.value === sortBy)?.label}</span>
+                      <svg className="filter-dropdown__arrow" width="10" height="10" viewBox="0 0 16 16" fill="currentColor">
+                        <path d="M8 11L3 6h10l-5 5z" />
+                      </svg>
+                    </button>
+                    {filterDropdownOpen && (
+                      <div className="filter-dropdown__menu">
+                        {[...getSortOptions(isLive, data?.currentGameweek).left, ...getSortOptions(isLive, data?.currentGameweek).right].map(opt => (
+                          <button
+                            key={opt.value}
+                            className={`filter-dropdown__item ${sortBy === opt.value ? 'active' : ''}`}
+                            onClick={() => {
+                              setSortBy(opt.value);
+                              setFilterDropdownOpen(false);
+                            }}
+                          >
+                            <span>{opt.label}</span>
+                          </button>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 )}
-              </div>
 
-              {/* Filter Dropdown - mobile */}
-              {viewMode === 'top' && (
-                <div className="filter-dropdown">
+                {/* Team Dropdown - mobile */}
+                <div className="team-dropdown team-dropdown--mobile">
                   <button
-                    className="filter-dropdown__trigger"
-                    onClick={() => {
-                      setFilterDropdownOpen(!filterDropdownOpen);
-                      setTeamDropdownOpen(false);
-                    }}
+                    className="team-dropdown__trigger"
+                    onClick={() => setTeamDropdownOpen(!teamDropdownOpen)}
                   >
-                    <span>{[...getSortOptions(isLive, data?.currentGameweek).left, ...getSortOptions(isLive, data?.currentGameweek).right].find(opt => opt.value === sortBy)?.label}</span>
-                    <svg className="filter-dropdown__arrow" width="10" height="10" viewBox="0 0 16 16" fill="currentColor">
+                    {viewMode === 'team' && selectedTeamId ? (
+                      <>
+                        <img
+                          src={`https://resources.premierleague.com/premierleague/badges/100/t${teams.find(t => t.id === selectedTeamId)?.code}@x2.png`}
+                          alt=""
+                          className="team-dropdown__current-badge"
+                        />
+                        <span>{teams.find(t => t.id === selectedTeamId)?.name}</span>
+                      </>
+                    ) : (
+                      <span>Teams</span>
+                    )}
+                    <svg className="team-dropdown__arrow" width="10" height="10" viewBox="0 0 16 16" fill="currentColor">
                       <path d="M8 11L3 6h10l-5 5z" />
                     </svg>
                   </button>
-                  {filterDropdownOpen && (
-                    <div className="filter-dropdown__menu">
-                      {[...getSortOptions(isLive, data?.currentGameweek).left, ...getSortOptions(isLive, data?.currentGameweek).right].map(opt => (
+                  {teamDropdownOpen && (
+                    <div className="team-dropdown__menu">
+                      {teams.map(team => (
                         <button
-                          key={opt.value}
-                          className={`filter-dropdown__item ${sortBy === opt.value ? 'active' : ''}`}
+                          key={team.id}
+                          className={`team-dropdown__item ${selectedTeamId === team.id ? 'active' : ''}`}
                           onClick={() => {
-                            setSortBy(opt.value);
-                            setFilterDropdownOpen(false);
+                            selectTeam(team);
+                            setTeamDropdownOpen(false);
                           }}
                         >
-                          <span>{opt.label}</span>
+                          <img
+                            src={`https://resources.premierleague.com/premierleague/badges/100/t${team.code}@x2.png`}
+                            alt={team.name}
+                            className="team-dropdown__badge"
+                          />
+                          <span>{team.name}</span>
                         </button>
                       ))}
                     </div>
                   )}
                 </div>
+              </div>
+            </div>
+
+            <div className="controls__right">
+              {/* Live indicator */}
+              {isLive && (
+                <div className="live-indicator">
+                  <span className="live-indicator__dot"></span>
+                  <span className="live-indicator__text">LIVE</span>
+                  {lastUpdated && (
+                    <span className="live-indicator__time">
+                      {lastUpdated.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}
+                    </span>
+                  )}
+                </div>
+              )}
+
+              {/* Sort buttons - right group (desktop, only on top view) */}
+              {viewMode === 'top' && (
+                <div className="sort-group sort-group--desktop">
+                  {getSortOptions(isLive, data?.currentGameweek).right.map(opt => (
+                    <button
+                      key={opt.value}
+                      className={`sort-btn ${sortBy === opt.value ? 'active' : ''}`}
+                      onClick={() => setSortBy(opt.value)}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
               )}
             </div>
           </div>
 
-          <div className="controls__right">
-            {/* Live indicator */}
-            {isLive && (
-              <div className="live-indicator">
-                <span className="live-indicator__dot"></span>
-                <span className="live-indicator__text">LIVE</span>
-                {lastUpdated && (
-                  <span className="live-indicator__time">
-                    {lastUpdated.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}
-                  </span>
-                )}
-              </div>
-            )}
-
-            {/* Sort buttons - right group (desktop) */}
-            {viewMode === 'top' && (
-              <div className="sort-group sort-group--desktop">
-                {getSortOptions(isLive, data?.currentGameweek).right.map(opt => (
-                  <button
-                    key={opt.value}
-                    className={`sort-btn ${sortBy === opt.value ? 'active' : ''}`}
-                    onClick={() => setSortBy(opt.value)}
-                  >
-                    {opt.label}
-                  </button>
-                ))}
-              </div>
-            )}
-
-          </div>
+        {/* Top right buttons */}
+        <div className="top-right-btns">
+          {viewMode !== 'top' && (
+            <button
+              className="back-btn"
+              onClick={handleBackToTop}
+            >
+              ← Back
+            </button>
+          )}
+          <button
+            className="myteam-btn"
+            onClick={handleMyTeamClick}
+          >
+            {myTeamLoading ? 'Loading...' : 'My Team'}
+          </button>
         </div>
-
-        {/* My Team button - top right */}
-        <button
-          className="myteam-btn"
-          onClick={handleMyTeamClick}
-        >
-          {myTeamLoading ? 'Loading...' : 'My Team'}
-        </button>
 
         {/* Team ID Modal */}
         {showTeamIdModal && (
@@ -393,19 +394,61 @@ function App() {
             <>
               {displayData.team && (
                 <div className="team-banner">
-                  <img
-                    src={`https://resources.premierleague.com/premierleague/badges/rb/t${displayData.team.code}.svg`}
-                    alt={displayData.team.name}
-                    className="team-banner__badge"
-                  />
-                  <div className="team-banner__info">
-                    <h2 className="team-banner__name">{displayData.team.name}</h2>
-                    <div className="team-banner__stats">
-                      <span>Strength: {displayData.team.strength}</span>
-                      <span>Attack: {displayData.team.attackHome}/{displayData.team.attackAway}</span>
-                      <span>Defence: {displayData.team.defenceHome}/{displayData.team.defenceAway}</span>
+                  <div className="team-banner__left">
+                    <img
+                      src={`https://resources.premierleague.com/premierleague/badges/100/t${displayData.team.code}@x2.png`}
+                      alt={displayData.team.name}
+                      className="team-banner__badge"
+                    />
+                    <div className="team-banner__info">
+                      <h2 className="team-banner__name">{displayData.team.name}</h2>
+                      {displayData.team.stadium && (
+                        <span className="team-banner__stadium">{displayData.team.stadium}</span>
+                      )}
+                      {displayData.team.capacity && (
+                        <span className="team-banner__capacity">{displayData.team.capacity.toLocaleString()}</span>
+                      )}
+                      {displayData.team.manager && (
+                        <span
+                          className="team-banner__manager"
+                          style={{ color: displayData.team.kitColors?.primary }}
+                        >
+                          {displayData.team.manager}
+                        </span>
+                      )}
                     </div>
                   </div>
+                  {displayData.nextFixture && (
+                    <div className="team-banner__next">
+                      <span className="team-banner__next-label">Next</span>
+                      <div className="team-banner__next-fixture">
+                        {displayData.nextFixture.homeTeam.id === displayData.team.id ? (
+                          <>
+                            <span className="team-banner__next-venue">H</span>
+                            <img
+                              src={`https://resources.premierleague.com/premierleague/badges/100/t${displayData.nextFixture.awayTeam.code}@x2.png`}
+                              alt={displayData.nextFixture.awayTeam.shortName}
+                              className="team-banner__next-badge"
+                            />
+                            <span className="team-banner__next-opponent">{displayData.nextFixture.awayTeam.shortName}</span>
+                          </>
+                        ) : (
+                          <>
+                            <span className="team-banner__next-venue">A</span>
+                            <img
+                              src={`https://resources.premierleague.com/premierleague/badges/100/t${displayData.nextFixture.homeTeam.code}@x2.png`}
+                              alt={displayData.nextFixture.homeTeam.shortName}
+                              className="team-banner__next-badge"
+                            />
+                            <span className="team-banner__next-opponent">{displayData.nextFixture.homeTeam.shortName}</span>
+                          </>
+                        )}
+                      </div>
+                      <span className="team-banner__next-date">
+                        {new Date(displayData.nextFixture.kickoffTime).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' })}
+                      </span>
+                    </div>
+                  )}
                 </div>
               )}
 

@@ -119,6 +119,11 @@
   flex-wrap: wrap;
 }
 
+/* Hide controls on desktop when in team view */
+.controls--team-view {
+  display: none;
+}
+
 .controls__left {
   display: flex;
   align-items: center;
@@ -210,11 +215,17 @@
   color: var(--text-primary);
 }
 
-/* My Team Button - positioned top right */
-.myteam-btn {
+/* Top Right Buttons */
+.top-right-btns {
   position: absolute;
   top: var(--space-lg);
   right: 20px;
+  display: flex;
+  gap: var(--space-sm);
+}
+
+.back-btn,
+.myteam-btn {
   font-family: 'Geist Mono', monospace;
   font-size: 12px;
   font-weight: 500;
@@ -229,6 +240,7 @@
   transition: all var(--transition-fast);
 }
 
+.back-btn:hover,
 .myteam-btn:hover {
   border-color: white;
   background: rgba(255, 255, 255, 0.1);
@@ -375,6 +387,95 @@
   color: var(--utd-red);
 }
 
+/* Team Dropdown */
+.team-dropdown {
+  position: relative;
+}
+
+.team-dropdown__trigger {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: 6px 12px;
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-family: 'Geist Mono', monospace;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  transition: border-color var(--transition-fast);
+}
+
+.team-dropdown__trigger:hover {
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.team-dropdown__arrow {
+  color: var(--text-muted);
+  flex-shrink: 0;
+  margin-left: 4px;
+}
+
+.team-dropdown__menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 100%;
+  max-height: 400px;
+  overflow-y: auto;
+  background: var(--bg-elevated);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-md);
+  margin-top: var(--space-xs);
+  z-index: 100;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  padding: var(--space-xs);
+  text-align: left;
+}
+
+.team-dropdown__item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: 8px 10px;
+  background: transparent;
+  color: var(--text-primary);
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-family: 'Geist Mono', monospace;
+  font-size: 12px;
+  text-align: left;
+  transition: background var(--transition-fast);
+}
+
+.team-dropdown__item:hover {
+  background: var(--bg-hover);
+}
+
+.team-dropdown__badge {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.team-dropdown__current-badge {
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+/* Mobile team dropdown - hidden on desktop */
+.team-dropdown--mobile {
+  display: none;
+}
+
 /* Main */
 .main {
   min-width: 0;
@@ -384,22 +485,40 @@
 .team-banner {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: var(--space-lg);
-  padding: var(--space-lg);
-  background: var(--bg-elevated);
-  border-radius: var(--radius-lg);
+  padding: var(--space-lg) 0;
   margin-bottom: var(--space-xl);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.team-banner__left {
+  display: flex;
+  align-items: center;
+  gap: var(--space-lg);
 }
 
 .team-banner__badge {
-  width: 64px;
-  height: 64px;
+  width: 80px;
+  height: 80px;
   object-fit: contain;
+  flex-shrink: 0;
 }
 
 .team-banner__info {
-  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+.team-banner__colors {
+  display: flex;
+  gap: 4px;
+}
+
+.team-banner__color {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
 }
 
 .team-banner__name {
@@ -407,20 +526,87 @@
   font-size: 24px;
   font-weight: 600;
   text-transform: uppercase;
-  margin-bottom: var(--space-xs);
+  color: var(--text-primary);
+  margin: 0;
 }
 
-.team-banner__stats {
-  display: flex;
-  gap: var(--space-lg);
-  font-size: 13px;
-  color: var(--text-secondary);
-}
-
-.team-banner__stats span {
+.team-banner__meta {
   display: flex;
   align-items: center;
+  gap: var(--space-md);
+}
+
+.team-banner__stadium {
+  font-family: 'Geist Mono', monospace;
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1;
+}
+
+.team-banner__manager {
+  font-family: 'Geist Mono', monospace;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1;
+}
+
+.team-banner__capacity {
+  font-family: 'Geist Mono', monospace;
+  font-size: 11px;
+  color: var(--text-muted);
+  line-height: 1;
+}
+
+/* Next Fixture */
+.team-banner__next {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
   gap: var(--space-xs);
+}
+
+.team-banner__next-label {
+  font-family: 'Geist Mono', monospace;
+  font-size: 10px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  letter-spacing: 1px;
+}
+
+.team-banner__next-fixture {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.team-banner__next-venue {
+  font-family: 'Geist Mono', monospace;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  background: var(--bg-tertiary);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.team-banner__next-badge {
+  width: 72px;
+  height: 72px;
+  object-fit: contain;
+}
+
+.team-banner__next-opponent {
+  font-family: 'Geist Mono', monospace;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+  text-transform: uppercase;
+}
+
+.team-banner__next-date {
+  font-family: 'Geist Mono', monospace;
+  font-size: 12px;
+  color: var(--text-secondary);
 }
 
 /* Position Sections */
@@ -633,16 +819,6 @@
     align-items: center;
   }
 
-  .team-banner {
-    flex-direction: column;
-    text-align: center;
-  }
-
-  .team-banner__stats {
-    flex-wrap: wrap;
-    justify-content: center;
-  }
-
   /* Hide live indicator on mobile to save space */
   .live-indicator {
     display: none;
@@ -650,7 +826,6 @@
 
   /* Hide desktop elements */
   .sort-group--desktop,
-  .team-select--desktop,
   .controls__right {
     display: none;
   }
@@ -664,6 +839,11 @@
   }
 
   .filter-dropdown {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .team-dropdown--mobile {
     flex: 1;
     min-width: 0;
   }
@@ -683,6 +863,31 @@
     margin-left: auto;
     flex-shrink: 0;
   }
+
+  /* Show controls on mobile even in team view */
+  .controls--team-view {
+    display: flex;
+  }
+
+  /* Show mobile team dropdown */
+  .team-dropdown--mobile {
+    display: block;
+  }
+
+  .team-dropdown--mobile .team-dropdown__trigger {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .team-dropdown--mobile .team-dropdown__trigger span {
+    flex: 1;
+    text-align: left;
+  }
+
+  .team-dropdown--mobile .team-dropdown__arrow {
+    margin-left: auto;
+  }
+
 
   /* Logo on mobile - keep large */
   .app-header__name {
