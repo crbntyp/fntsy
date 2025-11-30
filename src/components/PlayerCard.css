@@ -524,3 +524,20 @@
 .player-card__compact-change--down {
   color: #ef4444;
 }
+
+/* Mobile responsive - expanded stats */
+@media (max-width: 767px) {
+  .player-card__expanded-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-sm);
+  }
+
+  .player-card__expanded-stat .value {
+    font-size: 16px;
+  }
+
+  .player-card__live-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--space-sm);
+  }
+}
