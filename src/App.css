@@ -898,6 +898,34 @@
 }
 
 
+@media (max-width: 767px) {
+  /* Center the My Team/Back buttons */
+  .top-right-btns {
+    position: static;
+    justify-content: center;
+    width: 100%;
+    margin-bottom: var(--space-md);
+  }
+
+  /* Stack header content with buttons on top */
+  .app-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-top: var(--space-lg);
+  }
+
+  /* Push logo down with margin */
+  .app-header__title {
+    margin-top: var(--space-sm);
+  }
+
+  .app-header__name {
+    font-size: 72px;
+    margin-bottom: -32px;
+  }
+}
+
 @media (max-width: 640px) {
   .container {
     padding: 0 var(--space-md);
