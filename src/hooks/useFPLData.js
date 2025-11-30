@@ -22,7 +22,7 @@ const getApiUrl = (endpoint) => {
   if (isDev) {
     return `/api/fpl/${endpoint}`;
   }
-  return `/fntsyf/proxy.php?endpoint=${encodeURIComponent(endpoint)}`;
+  return `/fntsy/proxy.php?endpoint=${encodeURIComponent(endpoint)}`;
 };
 
 // Stadium names by team short_name
