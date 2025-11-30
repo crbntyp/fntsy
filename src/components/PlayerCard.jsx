@@ -130,6 +130,7 @@ export default function PlayerCard({ player, index, showTeam = false, compact = 
         {/* Info */}
         <div className="player-card__info">
           <div className="player-card__name-row">
+            <div className="player-card__first-name">{player.firstName}</div>
             <div className="player-card__name">{player.webName}</div>
           </div>
         </div>

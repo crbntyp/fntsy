@@ -590,9 +590,10 @@
 }
 
 .team-banner__next-badge {
-  width: 72px;
-  height: 72px;
+  width: 56px;
+  height: 56px;
   object-fit: contain;
+  margin-bottom: 10px;
 }
 
 .team-banner__next-opponent {

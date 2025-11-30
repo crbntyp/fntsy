@@ -173,9 +173,19 @@
 
 .player-card__name-row {
   display: flex;
-  align-items: center;
-  gap: var(--space-sm);
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
   width: 100%;
+}
+
+.player-card__first-name {
+  font-family: 'Geist Mono', monospace;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  color: var(--text-muted);
+  text-transform: uppercase;
 }
 
 .player-card__name {
