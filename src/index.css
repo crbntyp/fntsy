@@ -1,0 +1,170 @@
+@import url('https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500;600;700&family=DM+Sans:wght@400;500;600;700&display=swap');
+
+/* Britanica font for crbntyp logo */
+@font-face {
+  font-family: "Britanica";
+  src: url("/fntsyf/fonts/britanica-bold.woff2") format("woff2"),
+       url("/fntsyf/fonts/britanica-bold.woff") format("woff");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Britanica";
+  src: url("/fntsyf/fonts/britanica-extra-bold.woff2") format("woff2"),
+       url("/fntsyf/fonts/britanica-extra-bold.woff") format("woff");
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root {
+  /* Man Utd Brand */
+  --utd-red: #DA291C;
+  --utd-red-dark: #8B0000;
+  --utd-gold: #FBE122;
+
+  /* Backgrounds */
+  --bg-void: #050505;
+  --bg-base: #0A0A0A;
+  --bg-surface: #141414;
+  --bg-elevated: #1A1A1A;
+  --bg-card: #1E1E1E;
+  --bg-hover: #242424;
+
+  /* Text */
+  --text-primary: #FFFFFF;
+  --text-secondary: #A0A0A0;
+  --text-muted: #666666;
+
+  /* Status */
+  --status-available: #22C55E;
+  --status-doubtful: #F59E0B;
+  --status-injured: #EF4444;
+  --status-suspended: #EF4444;
+
+  /* Gradients */
+  --gradient-red: linear-gradient(135deg, var(--utd-red) 0%, var(--utd-red-dark) 100%);
+  --gradient-card: linear-gradient(180deg, var(--bg-card) 0%, var(--bg-surface) 100%);
+  --gradient-glow: radial-gradient(ellipse at center, rgba(218, 41, 28, 0.15) 0%, transparent 70%);
+
+  /* Shadows */
+  --shadow-card: 0 4px 24px rgba(0, 0, 0, 0.4);
+  --shadow-glow: 0 0 40px rgba(218, 41, 28, 0.2);
+
+  /* Spacing */
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 32px;
+  --space-2xl: 48px;
+  --space-3xl: 64px;
+
+  /* Border Radius */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+
+  /* Transitions */
+  --transition-fast: 150ms ease;
+  --transition-base: 250ms ease;
+  --transition-slow: 400ms ease;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: 'Geist Mono', monospace;
+  background: var(--bg-void);
+  color: var(--text-primary);
+  line-height: 1.5;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+/* Typography */
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Geist Mono', monospace;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-surface);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--bg-hover);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}
+
+/* Selection */
+::selection {
+  background: var(--utd-red);
+  color: var(--text-primary);
+}
+
+/* Utility Classes */
+.text-red { color: var(--utd-red); }
+.text-gold { color: var(--utd-gold); }
+.text-muted { color: var(--text-muted); }
+.text-secondary { color: var(--text-secondary); }
+
+/* Animation Keyframes */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes glow {
+  0%, 100% { box-shadow: 0 0 20px rgba(218, 41, 28, 0.3); }
+  50% { box-shadow: 0 0 40px rgba(218, 41, 28, 0.5); }
+}

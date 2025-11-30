@@ -1,0 +1,154 @@
+.team-id-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.9);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: var(--space-md);
+}
+
+.team-id-modal {
+  width: 100%;
+  max-width: 400px;
+  background: var(--bg-elevated);
+  border-radius: var(--radius-lg);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: var(--space-xl);
+  text-align: center;
+}
+
+.team-id-modal__gw {
+  display: inline-block;
+  font-family: 'Geist Mono', monospace;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 4px 12px;
+  background: var(--utd-red);
+  color: white;
+  border-radius: var(--radius-sm);
+  margin-bottom: var(--space-md);
+}
+
+.team-id-modal__title {
+  font-family: 'Geist Mono', monospace;
+  font-size: 20px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  margin-bottom: var(--space-sm);
+}
+
+.team-id-modal__desc {
+  font-family: 'Geist Mono', monospace;
+  font-size: 14px;
+  color: var(--text-secondary);
+  margin-bottom: var(--space-lg);
+  line-height: 1.5;
+}
+
+.team-id-modal__form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.team-id-modal__input {
+  font-family: 'Geist Mono', monospace;
+  font-size: 18px;
+  font-weight: 500;
+  text-align: center;
+  letter-spacing: 0.1em;
+  padding: var(--space-md);
+  background: var(--bg-base);
+  color: var(--text-primary);
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-md);
+  outline: none;
+  transition: border-color var(--transition-fast);
+}
+
+.team-id-modal__input:focus {
+  border-color: var(--utd-red);
+}
+
+.team-id-modal__input::placeholder {
+  color: var(--text-muted);
+  letter-spacing: 0.05em;
+}
+
+.team-id-modal__input:disabled {
+  opacity: 0.5;
+}
+
+.team-id-modal__error {
+  font-family: 'Geist Mono', monospace;
+  font-size: 13px;
+  color: var(--status-injured);
+  margin: 0;
+}
+
+.team-id-modal__actions {
+  display: flex;
+  gap: var(--space-sm);
+  margin-top: var(--space-sm);
+}
+
+.team-id-modal__btn {
+  flex: 1;
+  font-family: 'Geist Mono', monospace;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  padding: var(--space-md);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.team-id-modal__btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.team-id-modal__btn--primary {
+  background: var(--utd-red);
+  color: white;
+  border: none;
+}
+
+.team-id-modal__btn--primary:hover:not(:disabled) {
+  opacity: 0.9;
+}
+
+.team-id-modal__btn--secondary {
+  background: transparent;
+  color: var(--text-secondary);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.team-id-modal__btn--secondary:hover:not(:disabled) {
+  border-color: rgba(255, 255, 255, 0.4);
+  color: var(--text-primary);
+}
+
+.team-id-modal__hint {
+  font-family: 'Geist Mono', monospace;
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: var(--space-lg);
+}
+
+.team-id-modal__hint a {
+  color: var(--utd-red);
+  text-decoration: underline;
+}
+
+.team-id-modal__hint a:hover {
+  color: var(--text-primary);
+}

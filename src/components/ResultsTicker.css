@@ -1,0 +1,111 @@
+.results-ticker {
+  display: flex;
+  width: 100%;
+  background: var(--bg-elevated);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.results-ticker__gw {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  padding: var(--space-sm) var(--space-md);
+  background: var(--utd-red);
+  font-family: 'Geist Mono', monospace;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  color: var(--text-primary);
+}
+
+.results-ticker__content {
+  flex: 1;
+  overflow: hidden;
+  padding: var(--space-sm) 0;
+}
+
+.results-ticker__track {
+  display: flex;
+  gap: var(--space-xl);
+  animation: ticker 120s linear infinite;
+  width: max-content;
+}
+
+.results-ticker__track:hover {
+  animation-play-state: paused;
+}
+
+.results-ticker__item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  flex-shrink: 0;
+}
+
+.results-ticker__badge {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+}
+
+.results-ticker__score {
+  font-family: 'Geist Mono', monospace;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  min-width: 45px;
+  text-align: center;
+}
+
+.results-ticker__stadium {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-left: var(--space-xs);
+}
+
+.results-ticker__time {
+  font-family: 'Geist Mono', monospace;
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-left: var(--space-xs);
+}
+
+.results-ticker__cards {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  font-family: 'Geist Mono', monospace;
+  font-size: 11px;
+  margin-left: var(--space-xs);
+}
+
+.results-ticker__card-icon {
+  width: 8px;
+  height: 10px;
+  border-radius: 1px;
+}
+
+.results-ticker__cards--yellow .results-ticker__card-icon {
+  background: #ffc107;
+}
+
+.results-ticker__cards--yellow {
+  color: #ffc107;
+}
+
+.results-ticker__cards--red .results-ticker__card-icon {
+  background: #dc3545;
+}
+
+.results-ticker__cards--red {
+  color: #dc3545;
+}
+
+@keyframes ticker {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}

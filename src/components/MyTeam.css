@@ -1,0 +1,351 @@
+/* Modal Overlay */
+.my-team-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: var(--space-md);
+}
+
+/* Modal */
+.my-team-modal {
+  position: relative;
+  width: 100%;
+  max-width: 580px;
+  max-height: 90vh;
+  overflow-y: auto;
+  background: var(--bg-base);
+  border-radius: var(--radius-lg);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Close text outside modal */
+.my-team-overlay__close {
+  position: absolute;
+  top: var(--space-md);
+  right: var(--space-md);
+  background: transparent;
+  border: none;
+  font-family: 'Geist Mono', monospace;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: color var(--transition-fast);
+}
+
+.my-team-overlay__close:hover {
+  color: var(--text-primary);
+}
+
+/* Header */
+.my-team-modal__header {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-md);
+  padding: var(--space-lg);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.my-team-modal__info {
+  flex: 1;
+}
+
+.my-team-modal__name {
+  font-family: 'Geist Mono', monospace;
+  font-size: 18px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  margin: 0 0 2px 0;
+}
+
+.my-team-modal__manager {
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+.my-team-modal__change-btn {
+  font-family: 'Geist Mono', monospace;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  padding: 6px 12px;
+  background: transparent;
+  color: var(--text-muted);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.my-team-modal__change-btn:hover {
+  color: var(--text-primary);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.my-team-modal__stats {
+  display: flex;
+  gap: var(--space-md);
+}
+
+.my-team-modal__stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.my-team-modal__stat-value {
+  font-family: 'Geist Mono', monospace;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.my-team-modal__stat-label {
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+
+/* Formation badge on pitch */
+.my-team-pitch__formation {
+  position: absolute;
+  bottom: var(--space-sm);
+  left: var(--space-sm);
+  font-family: 'Geist Mono', monospace;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 10px;
+  background: var(--utd-gold);
+  color: var(--bg-base);
+  border-radius: var(--radius-sm);
+  z-index: 10;
+}
+
+/* Pitch */
+.my-team-pitch {
+  position: relative;
+  background: linear-gradient(180deg,
+    #1a472a 0%,
+    #1d5231 8%,
+    #1a472a 8%,
+    #1d5231 16%,
+    #1a472a 16%,
+    #1d5231 24%,
+    #1a472a 24%,
+    #1d5231 32%,
+    #1a472a 32%,
+    #1d5231 40%,
+    #1a472a 40%,
+    #1d5231 48%,
+    #1a472a 48%,
+    #1d5231 56%,
+    #1a472a 56%,
+    #1d5231 64%,
+    #1a472a 64%,
+    #1d5231 72%,
+    #1a472a 72%,
+    #1d5231 80%,
+    #1a472a 80%,
+    #1d5231 88%,
+    #1a472a 88%,
+    #1d5231 96%,
+    #1a472a 96%,
+    #1d5231 100%
+  );
+  padding: var(--space-md) var(--space-sm);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  min-height: 340px;
+}
+
+/* Pitch markings */
+.my-team-pitch__markings {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.my-team-pitch__center-circle {
+  position: absolute;
+  top: -40px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 120px;
+  height: 120px;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+}
+
+.my-team-pitch__penalty-box {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60%;
+  height: 100px;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-bottom: none;
+}
+
+.my-team-pitch__goal-box {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 30%;
+  height: 40px;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-bottom: none;
+}
+
+/* Formation rows */
+.my-team-pitch__row {
+  display: flex;
+  justify-content: center;
+  gap: var(--space-sm);
+  position: relative;
+  z-index: 1;
+}
+
+.my-team-pitch__row--fwd {
+  padding-top: var(--space-sm);
+}
+
+.my-team-pitch__row--mid {
+  flex: 1;
+  align-items: center;
+}
+
+.my-team-pitch__row--def {
+  flex: 1;
+  align-items: center;
+}
+
+.my-team-pitch__row--gkp {
+  padding-bottom: var(--space-sm);
+}
+
+/* Player on pitch */
+.my-team-pitch__player {
+  position: relative;
+  width: 70px;
+  flex-shrink: 0;
+}
+
+.my-team-pitch__badge {
+  position: absolute;
+  top: -4px;
+  left: -4px;
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Geist Mono', monospace;
+  font-size: 10px;
+  font-weight: 700;
+  border-radius: 50%;
+  z-index: 20;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+}
+
+.my-team-pitch__badge--captain {
+  background: var(--utd-gold);
+  color: var(--bg-base);
+}
+
+.my-team-pitch__badge--vice {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+  border: 2px solid var(--utd-gold);
+}
+
+/* Bench */
+.my-team-bench {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  padding: var(--space-md) var(--space-lg);
+  background: var(--bg-elevated);
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.my-team-bench__label {
+  font-family: 'Geist Mono', monospace;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  color: var(--text-muted);
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  transform: rotate(180deg);
+}
+
+.my-team-bench__players {
+  display: flex;
+  gap: var(--space-sm);
+  flex: 1;
+  justify-content: center;
+}
+
+
+/* Responsive */
+@media (max-width: 600px) {
+  .my-team-modal__header {
+    flex-wrap: wrap;
+    justify-content: center;
+    text-align: center;
+  }
+
+  .my-team-modal__info {
+    width: 100%;
+    text-align: center;
+  }
+
+  .my-team-modal__stats {
+    order: 3;
+    width: 100%;
+    justify-content: center;
+    gap: var(--space-xl);
+    margin-top: var(--space-sm);
+  }
+
+  .my-team-pitch__player {
+    width: 58px;
+  }
+
+  .my-team-pitch__row {
+    gap: var(--space-xs);
+  }
+
+  .my-team-bench__players {
+    gap: var(--space-xs);
+  }
+}
+
+@media (max-width: 480px) {
+  .my-team-pitch__player {
+    width: 48px;
+  }
+
+  .my-team-modal__name {
+    font-size: 14px;
+  }
+
+  .my-team-modal__stat-value {
+    font-size: 14px;
+  }
+}

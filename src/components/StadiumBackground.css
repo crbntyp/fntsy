@@ -1,0 +1,28 @@
+.stadium-background {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.stadium-background__image {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center top;
+  background-repeat: no-repeat;
+  opacity: 0.2;
+}
+
+.stadium-background__fade {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    transparent 10%,
+    var(--bg-void) 50%,
+    var(--bg-void) 100%
+  );
+}
