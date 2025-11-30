@@ -17,7 +17,8 @@ $endpoint = $_GET['endpoint'] ?? '';
 // Whitelist allowed endpoints
 $allowedEndpoints = [
     'bootstrap-static',
-    'fixtures'
+    'fixtures',
+    'event'
 ];
 
 // Validate endpoint
