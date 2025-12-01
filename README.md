@@ -2,6 +2,26 @@
 
 A minimal Fantasy Premier League stats viewer with live gameweek data.
 
+## Screenshots
+
+<div align="center">
+  <img src="src/gitimgs/Screenshot 2025-12-01 at 20.08.59.png" width="32%" />
+  <img src="src/gitimgs/Screenshot 2025-12-01 at 20.09.12.png" width="32%" />
+  <img src="src/gitimgs/Screenshot 2025-12-01 at 20.09.33.png" width="32%" />
+</div>
+
+<div align="center">
+  <img src="src/gitimgs/Screenshot 2025-12-01 at 20.09.42.png" width="32%" />
+  <img src="src/gitimgs/Screenshot 2025-12-01 at 20.09.55.png" width="32%" />
+  <img src="src/gitimgs/Screenshot 2025-12-01 at 20.10.01.png" width="32%" />
+</div>
+
+<div align="center">
+  <img src="src/gitimgs/Screenshot 2025-12-01 at 20.10.19.png" width="32%" />
+  <img src="src/gitimgs/Screenshot 2025-12-01 at 20.10.24.png" width="32%" />
+  <img src="src/gitimgs/Screenshot 2025-12-01 at 20.10.57.png" width="32%" />
+</div>
+
 ## Features
 
 - **Live Points Tracking** - Real-time player points during active gameweeks
