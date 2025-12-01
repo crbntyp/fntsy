@@ -1,4 +1,5 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
+import html2canvas from 'html2canvas';
 import PlayerCard from './PlayerCard';
 import Dropdown from './Dropdown';
 import { addPredictions } from '../hooks/useFPLData';
@@ -59,6 +60,10 @@ export default function TeamBuilder({ players, teams, currentGameweek, allFixtur
   const [sortBy, setSortBy] = useState('predicted');
   const [showTeamList, setShowTeamList] = useState(false);
   const [editingName, setEditingName] = useState(false);
+  const [exporting, setExporting] = useState(false);
+
+  // Ref for pitch export
+  const pitchRef = useRef(null);
 
   // Save to localStorage whenever savedTeams changes
   useEffect(() => {
@@ -227,6 +232,69 @@ export default function TeamBuilder({ players, teams, currentGameweek, allFixtur
       }
       return [...prev, teamToSave];
     });
+  };
+
+  // Export team as PNG
+  const exportTeam = async () => {
+    if (!pitchRef.current || exporting) return;
+
+    setExporting(true);
+    try {
+      // Convert all images to base64 to avoid CORS issues
+      const images = pitchRef.current.querySelectorAll('img');
+      const originalSrcs = [];
+
+      await Promise.all([...images].map(async (img, i) => {
+        originalSrcs[i] = img.src;
+        try {
+          const response = await fetch(img.src, { mode: 'cors' });
+          const blob = await response.blob();
+          const base64 = await new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.onloadend = () => resolve(reader.result);
+            reader.readAsDataURL(blob);
+          });
+          img.src = base64;
+        } catch (e) {
+          // If fetch fails, try proxy
+          try {
+            const proxyUrl = `/fntsy/proxy.php?image=${encodeURIComponent(img.src)}`;
+            const response = await fetch(proxyUrl);
+            const blob = await response.blob();
+            const base64 = await new Promise((resolve) => {
+              const reader = new FileReader();
+              reader.onloadend = () => resolve(reader.result);
+              reader.readAsDataURL(blob);
+            });
+            img.src = base64;
+          } catch (e2) {
+            console.log('Could not convert image:', img.src);
+          }
+        }
+      }));
+
+      const canvas = await html2canvas(pitchRef.current, {
+        backgroundColor: '#0a0a0a',
+        scale: 2,
+        useCORS: true,
+        allowTaint: true,
+        logging: false
+      });
+
+      // Restore original image sources
+      images.forEach((img, i) => {
+        img.src = originalSrcs[i];
+      });
+
+      const link = document.createElement('a');
+      link.download = `${currentTeam.name.replace(/\s+/g, '-').toLowerCase()}-gw${currentGameweek}.png`;
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    } catch (err) {
+      console.error('Export failed:', err);
+    } finally {
+      setExporting(false);
+    }
   };
 
   // Create new team
@@ -484,6 +552,9 @@ export default function TeamBuilder({ players, teams, currentGameweek, allFixtur
           <button className="builder-header__btn" onClick={() => setShowTeamList(true)}>
             Teams
           </button>
+          <button className="builder-header__btn" onClick={exportTeam} disabled={exporting}>
+            {exporting ? '...' : 'Export'}
+          </button>
           <button className="builder-header__btn builder-header__btn--primary" onClick={saveTeam}>
             Save
           </button>
@@ -516,7 +587,7 @@ export default function TeamBuilder({ players, teams, currentGameweek, allFixtur
       </div>
 
       {/* Pitch */}
-      <div className="builder-pitch">
+      <div className="builder-pitch" ref={pitchRef}>
         <span className="builder-pitch__formation">{formation}</span>
 
         <div className="builder-pitch__markings">
