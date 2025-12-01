@@ -1,0 +1,70 @@
+.fdr-calendar {
+  margin-top: var(--space-xl);
+  margin-bottom: 20px;
+}
+
+.fdr-calendar__title {
+  font-family: 'Geist Mono', monospace;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  margin: 0 0 var(--space-md) 0;
+}
+
+.fdr-calendar__grid {
+  display: flex;
+  gap: var(--space-sm);
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.fdr-calendar__grid::-webkit-scrollbar {
+  display: none;
+}
+
+.fdr-calendar__item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-sm) var(--space-md);
+  border-radius: var(--radius-md);
+  text-align: center;
+  min-height: 70px;
+  min-width: 80px;
+  flex-shrink: 0;
+  border: 2px solid;
+}
+
+.fdr-calendar__gw {
+  font-family: 'Geist Mono', monospace;
+  font-size: 10px;
+  font-weight: 600;
+  opacity: 0.7;
+  margin-bottom: 2px;
+}
+
+.fdr-calendar__badge {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+}
+
+.fdr-calendar__opponent {
+  font-family: 'Geist Mono', monospace;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.fdr-calendar__venue {
+  font-family: 'Geist Mono', monospace;
+  font-size: 10px;
+  font-weight: 500;
+  opacity: 0.7;
+  margin-top: 2px;
+}
+

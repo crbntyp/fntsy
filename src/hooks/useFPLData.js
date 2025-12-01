@@ -339,6 +339,8 @@ export function useFPLData() {
             awayTeam: teamLookup[f.team_a],
             homeScore: f.team_h_score,
             awayScore: f.team_a_score,
+            homeDifficulty: f.team_h_difficulty,
+            awayDifficulty: f.team_a_difficulty,
             finished: f.finished,
             started: f.started,
             kickoffTime: f.kickoff_time,
@@ -562,6 +564,23 @@ export function getTeamUpcoming(fixtures, teamId, count = 5) {
     .filter(f => !f.finished && f.kickoffTime && (f.homeTeam?.id === teamId || f.awayTeam?.id === teamId))
     .sort((a, b) => new Date(a.kickoffTime) - new Date(b.kickoffTime))
     .slice(0, count);
+}
+
+// Helper to get FDR calendar for a team
+export function getTeamFDR(fixtures, teamId) {
+  return fixtures
+    .filter(f => !f.finished && f.kickoffTime && (f.homeTeam?.id === teamId || f.awayTeam?.id === teamId))
+    .sort((a, b) => new Date(a.kickoffTime) - new Date(b.kickoffTime))
+    .map(f => {
+      const isHome = f.homeTeam?.id === teamId;
+      return {
+        gameweek: f.gameweek,
+        opponent: isHome ? f.awayTeam : f.homeTeam,
+        isHome,
+        difficulty: isHome ? f.homeDifficulty : f.awayDifficulty,
+        kickoffTime: f.kickoffTime
+      };
+    });
 }
 
 // Hook to fetch Dream Team for a gameweek

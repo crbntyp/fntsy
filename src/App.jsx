@@ -1,9 +1,10 @@
 import { useState, useMemo, useEffect } from 'react';
-import { useFPLData, useMyTeam, useDreamTeam, getTopPlayersByPosition, getPlayersByTeam, getTeamUpcoming } from './hooks/useFPLData';
+import { useFPLData, useMyTeam, useDreamTeam, getTopPlayersByPosition, getPlayersByTeam, getTeamUpcoming, getTeamFDR } from './hooks/useFPLData';
 import PlayerCard from './components/PlayerCard';
 import ResultsTicker from './components/ResultsTicker';
 import MyTeam from './components/MyTeam';
 import DreamTeam from './components/DreamTeam';
+import FDRCalendar from './components/FDRCalendar';
 import TeamIdModal from './components/TeamIdModal';
 import Loading from './components/Loading';
 import StadiumBackground from './components/StadiumBackground';
@@ -149,11 +150,13 @@ function App() {
       const teamId = selectedTeamId || data.teams[0]?.id;
       const team = data.teams.find(t => t.id === teamId);
       const nextFixtures = getTeamUpcoming(data.allFixtures, teamId, 1);
+      const fdrFixtures = getTeamFDR(data.allFixtures, teamId);
       return {
         type: 'team',
         team,
         players: getPlayersByTeam(data.players, teamId),
-        nextFixture: nextFixtures[0] || null
+        nextFixture: nextFixtures[0] || null,
+        fdrFixtures
       };
     }
   }, [data, viewMode, selectedTeamId, sortBy]);
@@ -527,6 +530,8 @@ function App() {
                   )}
                 </div>
               )}
+
+              <FDRCalendar fixtures={displayData.fdrFixtures} />
 
               {['GKP', 'DEF', 'MID', 'FWD'].map(position => {
                 const posPlayers = displayData.players.filter(p => p.position === position);
