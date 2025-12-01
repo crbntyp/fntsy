@@ -632,19 +632,10 @@
 .team-list__item {
   display: flex;
   align-items: center;
-  gap: var(--space-sm);
-  margin-bottom: var(--space-sm);
-}
-
-.team-list__item.active .team-list__load {
-  border-color: var(--utd-gold);
-}
-
-.team-list__load {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
+  justify-content: space-between;
+  width: 100%;
   padding: var(--space-sm) var(--space-md);
+  margin-bottom: var(--space-sm);
   background: var(--bg-elevated);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: var(--radius-sm);
@@ -653,8 +644,17 @@
   text-align: left;
 }
 
-.team-list__load:hover {
+.team-list__item:hover {
   border-color: rgba(255, 255, 255, 0.3);
+}
+
+.team-list__item.active {
+  border-color: var(--utd-gold);
+}
+
+.team-list__info {
+  display: flex;
+  flex-direction: column;
 }
 
 .team-list__name {
@@ -671,20 +671,14 @@
 }
 
 .team-list__delete {
-  width: 28px;
-  height: 28px;
-  font-size: 16px;
-  background: transparent;
+  font-size: 18px;
   color: var(--text-muted);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: var(--radius-sm);
-  cursor: pointer;
-  transition: all var(--transition-fast);
+  transition: color var(--transition-fast);
+  padding: 4px;
 }
 
 .team-list__delete:hover {
   color: var(--status-injured);
-  border-color: var(--status-injured);
 }
 
 .team-list__empty {

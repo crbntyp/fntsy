@@ -571,11 +571,12 @@ export default function TeamBuilder({ players, teams, currentGameweek, allFixtur
 
             <div className="team-list">
               {savedTeams.map(team => (
-                <div
+                <button
                   key={team.id}
                   className={`team-list__item ${team.id === currentTeam.id ? 'active' : ''}`}
+                  onClick={() => loadTeam(team)}
                 >
-                  <button className="team-list__load" onClick={() => loadTeam(team)}>
+                  <div className="team-list__info">
                     <span className="team-list__name">{team.name}</span>
                     <span className="team-list__meta">
                       {team.players.length}/15 players
@@ -583,14 +584,14 @@ export default function TeamBuilder({ players, teams, currentGameweek, allFixtur
                         <> · {Object.values(team.pointsHistory).reduce((a, b) => a + b, 0)} pts</>
                       )}
                     </span>
-                  </button>
-                  <button
+                  </div>
+                  <span
                     className="team-list__delete"
-                    onClick={() => deleteTeam(team.id)}
+                    onClick={(e) => { e.stopPropagation(); deleteTeam(team.id); }}
                   >
                     ×
-                  </button>
-                </div>
+                  </span>
+                </button>
               ))}
               {savedTeams.length === 0 && (
                 <p className="team-list__empty">No saved teams yet</p>
