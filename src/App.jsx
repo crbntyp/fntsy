@@ -429,7 +429,16 @@ function App() {
             </>
           ) : (
             // Team View
-            <>
+            <div className="team-view">
+              {/* Large background badge */}
+              {displayData.team && (
+                <img
+                  src={`https://resources.premierleague.com/premierleague/badges/100/t${displayData.team.code}@x2.png`}
+                  alt=""
+                  className="team-view__bg-badge"
+                  aria-hidden="true"
+                />
+              )}
               {displayData.team && (
                 <div className="team-banner">
                   <div className="team-banner__left">
@@ -508,7 +517,7 @@ function App() {
                   </section>
                 );
               })}
-            </>
+            </div>
           )}
         </main>
 

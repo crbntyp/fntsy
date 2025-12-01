@@ -566,6 +566,25 @@
   min-width: 0;
 }
 
+/* Team View */
+.team-view {
+  position: relative;
+}
+
+.team-view__bg-badge {
+  position: absolute;
+  top: -400px;
+  right: 0px;
+  width: 1000px;
+  height: 1000px;
+  object-fit: contain;
+  opacity: 0.04;
+  filter: blur(20px);
+  transform: perspective(800px) rotateY(-15deg) rotateX(45deg);
+  pointer-events: none;
+  z-index: 0;
+}
+
 /* Team Banner */
 .team-banner {
   display: flex;
