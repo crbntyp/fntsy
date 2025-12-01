@@ -26,7 +26,7 @@
 
 .app-header__name {
   font-family: "Britanica", Arial, sans-serif;
-  font-size: clamp(72px, 12vw, 112px);
+  font-size: 112px;
   font-weight: 800;
   color: white;
   -webkit-text-stroke: 1px white;
@@ -48,14 +48,9 @@
   border-radius: var(--radius-sm);
 }
 
+/* Team badges row - hidden, using burger menu instead */
 .app-header__teams {
-  display: flex;
-  justify-content: space-between;
-  margin-top: var(--space-lg);
-}
-
-.app-header__teams {
-  display: flex;
+  display: none;
 }
 
 .app-header__team-select {
@@ -215,13 +210,9 @@
   color: var(--text-primary);
 }
 
-/* Top Right Buttons */
+/* Top Right Buttons - hidden, burger menu used instead */
 .top-right-btns {
-  position: absolute;
-  top: var(--space-lg);
-  right: 20px;
-  display: flex;
-  gap: var(--space-sm);
+  display: none;
 }
 
 .back-btn,
@@ -252,11 +243,10 @@
   color: var(--utd-gold);
 }
 
-/* Burger Menu - hidden on desktop */
+/* Burger Menu - always visible */
 .burger-menu {
-  display: none;
   position: absolute;
-  top: 50px;
+  top: 80px;
   right: 20px;
   z-index: 100;
 }
@@ -915,10 +905,6 @@
 /* Responsive */
 
 @media (max-width: 1023px) {
-  .app-header__teams {
-    display: none;
-  }
-
   .controls {
     flex-wrap: wrap;
   }
@@ -1005,29 +991,9 @@
   }
 
 
-  /* Logo on mobile - keep large */
-  .app-header__name {
-    font-size: 96px;
-    margin-bottom: -44px;
-  }
 }
 
 
-@media (max-width: 767px) {
-  /* Hide desktop buttons, show burger */
-  .top-right-btns--desktop {
-    display: none;
-  }
-
-  .burger-menu {
-    display: block;
-  }
-
-  .app-header__name {
-    font-size: 72px;
-    margin-bottom: -32px;
-  }
-}
 
 @media (max-width: 640px) {
   .container {

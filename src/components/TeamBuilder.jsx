@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
-import html2canvas from 'html2canvas';
+import domtoimage from 'dom-to-image-more';
 import PlayerCard from './PlayerCard';
 import Dropdown from './Dropdown';
 import { addPredictions } from '../hooks/useFPLData';
@@ -16,13 +16,24 @@ const POSITION_LIMITS = {
   FWD: { min: 3, max: 3 }
 };
 
+const FORMATIONS = [
+  { value: '3-4-3', def: 3, mid: 4, fwd: 3 },
+  { value: '3-5-2', def: 3, mid: 5, fwd: 2 },
+  { value: '4-3-3', def: 4, mid: 3, fwd: 3 },
+  { value: '4-4-2', def: 4, mid: 4, fwd: 2 },
+  { value: '4-5-1', def: 4, mid: 5, fwd: 1 },
+  { value: '5-3-2', def: 5, mid: 3, fwd: 2 },
+  { value: '5-4-1', def: 5, mid: 4, fwd: 1 }
+];
+
 const EMPTY_TEAM = {
   id: null,
   name: 'My Team',
   createdGW: null,
   players: [],
-  starting: [],
-  bench: [],
+  formation: '4-3-3',
+  starting: [], // 11 player IDs
+  bench: [], // 4 player IDs in order
   captain: null,
   viceCaptain: null,
   pointsHistory: {} // { gw: points }
@@ -30,6 +41,54 @@ const EMPTY_TEAM = {
 
 function generateId() {
   return Date.now().toString(36) + Math.random().toString(36).substr(2);
+}
+
+// Auto-assign starting 11 based on formation and predicted points
+function autoAssignStarting(players, formation) {
+  if (players.length === 0) return { starting: [], bench: [] };
+
+  const formationConfig = FORMATIONS.find(f => f.value === formation) || FORMATIONS[0];
+
+  // Group by position and sort by predicted points
+  const byPosition = { GKP: [], DEF: [], MID: [], FWD: [] };
+  players.forEach(p => {
+    if (byPosition[p.position]) {
+      byPosition[p.position].push(p);
+    }
+  });
+
+  // Sort each position by predicted points (desc)
+  Object.keys(byPosition).forEach(pos => {
+    byPosition[pos].sort((a, b) => (b.predictedPoints || 0) - (a.predictedPoints || 0));
+  });
+
+  // Pick starters based on formation
+  const starting = [];
+  const bench = [];
+
+  // 1 GK starts
+  if (byPosition.GKP[0]) starting.push(byPosition.GKP[0].id);
+  if (byPosition.GKP[1]) bench.push(byPosition.GKP[1].id);
+
+  // DEF based on formation
+  byPosition.DEF.forEach((p, i) => {
+    if (i < formationConfig.def) starting.push(p.id);
+    else bench.push(p.id);
+  });
+
+  // MID based on formation
+  byPosition.MID.forEach((p, i) => {
+    if (i < formationConfig.mid) starting.push(p.id);
+    else bench.push(p.id);
+  });
+
+  // FWD based on formation
+  byPosition.FWD.forEach((p, i) => {
+    if (i < formationConfig.fwd) starting.push(p.id);
+    else bench.push(p.id);
+  });
+
+  return { starting, bench };
 }
 
 export default function TeamBuilder({ players, teams, currentGameweek, allFixtures, onBack }) {
@@ -55,6 +114,7 @@ export default function TeamBuilder({ players, teams, currentGameweek, allFixtur
   const [showPlayerPicker, setShowPlayerPicker] = useState(() => window.innerWidth >= 900);
   const [pickerPosition, setPickerPosition] = useState('GKP');
   const [pickerSlotIndex, setPickerSlotIndex] = useState(null);
+  const [addingToBench, setAddingToBench] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterTeam, setFilterTeam] = useState(null);
   const [sortBy, setSortBy] = useState('predicted');
@@ -75,6 +135,27 @@ export default function TeamBuilder({ players, teams, currentGameweek, allFixtur
     return currentTeam.players.map(id => playersWithPredictions.find(p => p.id === id)).filter(Boolean);
   }, [currentTeam.players, playersWithPredictions]);
 
+  // Get current formation config
+  const formationConfig = useMemo(() => {
+    return FORMATIONS.find(f => f.value === (currentTeam.formation || '3-4-3')) || FORMATIONS[0];
+  }, [currentTeam.formation]);
+
+  // Get starting 11 and bench 4 players
+  const { startingPlayers, benchPlayers } = useMemo(() => {
+    // If we have manual starting/bench assignments, use them
+    if (currentTeam.starting?.length > 0) {
+      const starting = currentTeam.starting.map(id => teamPlayers.find(p => p.id === id)).filter(Boolean);
+      const bench = currentTeam.bench?.map(id => teamPlayers.find(p => p.id === id)).filter(Boolean) || [];
+      return { startingPlayers: starting, benchPlayers: bench };
+    }
+    // Otherwise auto-assign based on formation
+    const { starting, bench } = autoAssignStarting(teamPlayers, currentTeam.formation || '3-4-3');
+    return {
+      startingPlayers: starting.map(id => teamPlayers.find(p => p.id === id)).filter(Boolean),
+      benchPlayers: bench.map(id => teamPlayers.find(p => p.id === id)).filter(Boolean)
+    };
+  }, [teamPlayers, currentTeam.starting, currentTeam.bench, currentTeam.formation]);
+
   // Calculate budget spent
   const budgetSpent = useMemo(() => {
     return teamPlayers.reduce((sum, p) => sum + p.price, 0);
@@ -91,6 +172,15 @@ export default function TeamBuilder({ players, teams, currentGameweek, allFixtur
     return counts;
   }, [teamPlayers]);
 
+  // Count starting players per position (for formation display)
+  const startingCounts = useMemo(() => {
+    const counts = { GKP: 0, DEF: 0, MID: 0, FWD: 0 };
+    startingPlayers.forEach(p => {
+      if (counts[p.position] !== undefined) counts[p.position]++;
+    });
+    return counts;
+  }, [startingPlayers]);
+
   // Count players per club
   const clubCounts = useMemo(() => {
     const counts = {};
@@ -100,15 +190,15 @@ export default function TeamBuilder({ players, teams, currentGameweek, allFixtur
     return counts;
   }, [teamPlayers]);
 
-  // Calculate current GW points (all 15 players, captain 2x)
+  // Calculate current GW points (starting 11 only, captain 2x)
   const currentGWPoints = useMemo(() => {
-    if (teamPlayers.length === 0) return 0;
-    return teamPlayers.reduce((sum, p) => {
+    if (startingPlayers.length === 0) return 0;
+    return startingPlayers.reduce((sum, p) => {
       const pts = p.livePoints || 0;
       if (p.id === currentTeam.captain) return sum + (pts * 2);
       return sum + pts;
     }, 0);
-  }, [teamPlayers, currentTeam.captain]);
+  }, [startingPlayers, currentTeam.captain]);
 
   // Calculate total points from history
   const totalPoints = useMemo(() => {
@@ -116,19 +206,19 @@ export default function TeamBuilder({ players, teams, currentGameweek, allFixtur
     return Object.values(history).reduce((sum, pts) => sum + pts, 0);
   }, [currentTeam.pointsHistory]);
 
-  // Calculate predicted points for team (captain 2x)
+  // Calculate predicted points for team (starting 11, captain 2x)
   const predictedTeamPoints = useMemo(() => {
-    if (teamPlayers.length === 0) return 0;
-    return teamPlayers.reduce((sum, p) => {
+    if (startingPlayers.length === 0) return 0;
+    return startingPlayers.reduce((sum, p) => {
       const pts = p.predictedPoints || 0;
       if (p.id === currentTeam.captain) return sum + (pts * 2);
       return sum + pts;
     }, 0);
-  }, [teamPlayers, currentTeam.captain]);
+  }, [startingPlayers, currentTeam.captain]);
 
-  // Get players by position for pitch display
+  // Get starting players by position for pitch display
   const getPlayersInPosition = (position) => {
-    return teamPlayers.filter(p => p.position === position);
+    return startingPlayers.filter(p => p.position === position);
   };
 
   // Check if player can be added
@@ -154,10 +244,34 @@ export default function TeamBuilder({ players, teams, currentGameweek, allFixtur
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  // Get current starting/bench IDs (from state or auto-assigned)
+  const getCurrentLineup = () => {
+    if (currentTeam.starting?.length > 0) {
+      return {
+        startingIds: currentTeam.starting,
+        benchIds: currentTeam.bench || []
+      };
+    }
+    // Use auto-assigned
+    const { starting, bench } = autoAssignStarting(teamPlayers, currentTeam.formation || '3-4-3');
+    return { startingIds: starting, benchIds: bench };
+  };
+
   // Open player picker for a position
-  const openPicker = (position, slotIndex = null) => {
+  const openPicker = (position, slotIndex = null, forBench = false) => {
     setPickerPosition(position);
     setPickerSlotIndex(slotIndex);
+    setAddingToBench(forBench);
+    setShowPlayerPicker(true);
+    setSearchQuery('');
+    setFilterTeam(null);
+  };
+
+  // Open picker for bench slot (all positions)
+  const openBenchPicker = () => {
+    setPickerPosition(null); // null = all positions
+    setPickerSlotIndex(null);
+    setAddingToBench(true);
     setShowPlayerPicker(true);
     setSearchQuery('');
     setFilterTeam(null);
@@ -167,10 +281,24 @@ export default function TeamBuilder({ players, teams, currentGameweek, allFixtur
   const addPlayer = (player) => {
     if (!canAddPlayer(player)) return;
 
-    setCurrentTeam(prev => ({
-      ...prev,
-      players: [...prev.players, player.id]
-    }));
+    // Before 15 players, just add to team (no starting/bench distinction)
+    if (currentTeam.players.length < 14) {
+      setCurrentTeam(prev => ({
+        ...prev,
+        players: [...prev.players, player.id]
+      }));
+    } else {
+      // Adding the 15th player - auto-assign formation
+      const newPlayers = [...currentTeam.players, player.id];
+      const allPlayers = newPlayers.map(id => playersWithPredictions.find(p => p.id === id)).filter(Boolean);
+      const { starting, bench } = autoAssignStarting(allPlayers, currentTeam.formation || '3-4-3');
+      setCurrentTeam(prev => ({
+        ...prev,
+        players: newPlayers,
+        starting,
+        bench
+      }));
+    }
     // Only close picker on mobile
     if (!isDesktop) {
       setShowPlayerPicker(false);
@@ -179,14 +307,27 @@ export default function TeamBuilder({ players, teams, currentGameweek, allFixtur
 
   // Remove player from team
   const removePlayer = (playerId) => {
-    setCurrentTeam(prev => ({
-      ...prev,
-      players: prev.players.filter(id => id !== playerId),
-      starting: prev.starting.filter(id => id !== playerId),
-      bench: prev.bench.filter(id => id !== playerId),
-      captain: prev.captain === playerId ? null : prev.captain,
-      viceCaptain: prev.viceCaptain === playerId ? null : prev.viceCaptain
-    }));
+    const newPlayers = currentTeam.players.filter(id => id !== playerId);
+    // If dropping below 15 players, clear starting/bench
+    if (newPlayers.length < 15) {
+      setCurrentTeam(prev => ({
+        ...prev,
+        players: newPlayers,
+        starting: [],
+        bench: [],
+        captain: prev.captain === playerId ? null : prev.captain,
+        viceCaptain: prev.viceCaptain === playerId ? null : prev.viceCaptain
+      }));
+    } else {
+      setCurrentTeam(prev => ({
+        ...prev,
+        players: newPlayers,
+        starting: prev.starting.filter(id => id !== playerId),
+        bench: prev.bench.filter(id => id !== playerId),
+        captain: prev.captain === playerId ? null : prev.captain,
+        viceCaptain: prev.viceCaptain === playerId ? null : prev.viceCaptain
+      }));
+    }
   };
 
   // Set captain
@@ -205,6 +346,122 @@ export default function TeamBuilder({ players, teams, currentGameweek, allFixtur
       viceCaptain: playerId,
       captain: prev.captain === playerId ? null : prev.captain
     }));
+  };
+
+  // Change formation and re-assign starting/bench
+  const changeFormation = (newFormation) => {
+    const { starting, bench } = autoAssignStarting(teamPlayers, newFormation);
+    setCurrentTeam(prev => ({
+      ...prev,
+      formation: newFormation,
+      starting,
+      bench
+    }));
+  };
+
+  // Drag and drop state
+  const [draggedPlayer, setDraggedPlayer] = useState(null);
+
+  // Validate if a formation change is allowed
+  const validateFormation = (newCounts) => {
+    // GKP: exactly 1
+    if (newCounts.GKP !== 1) return false;
+    // DEF: 3-5
+    if (newCounts.DEF < 3 || newCounts.DEF > 5) return false;
+    // MID: 3-5
+    if (newCounts.MID < 3 || newCounts.MID > 5) return false;
+    // FWD: 1-3
+    if (newCounts.FWD < 1 || newCounts.FWD > 3) return false;
+    // Total must be 11
+    const total = newCounts.GKP + newCounts.DEF + newCounts.MID + newCounts.FWD;
+    if (total !== 11) return false;
+    return true;
+  };
+
+  // Handle drag start
+  const handleDragStart = (e, player, isFromBench) => {
+    setDraggedPlayer({ ...player, isFromBench });
+    e.dataTransfer.effectAllowed = 'move';
+  };
+
+  // Handle drag over (allow drop)
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+  };
+
+  // Handle drop on a starting position (swap bench player with starter)
+  const handleDropOnStarter = (e, targetPlayer) => {
+    e.preventDefault();
+    if (!draggedPlayer || !draggedPlayer.isFromBench) {
+      setDraggedPlayer(null);
+      return;
+    }
+
+    // Calculate new formation counts
+    const newCounts = { ...startingCounts };
+    newCounts[targetPlayer.position]--; // Remove target from starting
+    newCounts[draggedPlayer.position]++; // Add dragged to starting
+
+    if (!validateFormation(newCounts)) {
+      setDraggedPlayer(null);
+      return;
+    }
+
+    // Get current lineup IDs
+    const { startingIds, benchIds } = getCurrentLineup();
+
+    // Calculate new formation string
+    const newFormation = `${newCounts.DEF}-${newCounts.MID}-${newCounts.FWD}`;
+
+    // Perform the swap
+    setCurrentTeam(prev => ({
+      ...prev,
+      formation: newFormation,
+      starting: startingIds.map(id => id === targetPlayer.id ? draggedPlayer.id : id),
+      bench: benchIds.map(id => id === draggedPlayer.id ? targetPlayer.id : id)
+    }));
+    setDraggedPlayer(null);
+  };
+
+  // Handle drop on bench (move starter to bench)
+  const handleDropOnBench = (e) => {
+    e.preventDefault();
+    if (!draggedPlayer || draggedPlayer.isFromBench) {
+      setDraggedPlayer(null);
+      return;
+    }
+
+    // Can't move to bench if bench is full
+    if (benchPlayers.length >= 4) {
+      setDraggedPlayer(null);
+      return;
+    }
+
+    // Calculate new formation counts
+    const newCounts = { ...startingCounts };
+    newCounts[draggedPlayer.position]--;
+
+    // Check minimum requirements
+    if (newCounts.GKP < 1 || newCounts.DEF < 3 || newCounts.MID < 3 || newCounts.FWD < 1) {
+      setDraggedPlayer(null);
+      return;
+    }
+
+    // Get current lineup IDs
+    const { startingIds, benchIds } = getCurrentLineup();
+
+    // Calculate new formation string
+    const newFormation = `${newCounts.DEF}-${newCounts.MID}-${newCounts.FWD}`;
+
+    // Move starter to bench
+    setCurrentTeam(prev => ({
+      ...prev,
+      formation: newFormation,
+      starting: startingIds.filter(id => id !== draggedPlayer.id),
+      bench: [...benchIds, draggedPlayer.id]
+    }));
+    setDraggedPlayer(null);
   };
 
   // Save current team (and record current GW points)
@@ -234,57 +491,141 @@ export default function TeamBuilder({ players, teams, currentGameweek, allFixtur
     });
   };
 
-  // Export team as PNG
+  // Load image helper
+  const loadImage = (src) => {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      img.onload = () => resolve(img);
+      img.onerror = reject;
+      img.src = src;
+    });
+  };
+
+  // Export team as PNG with club badges
   const exportTeam = async () => {
     if (!pitchRef.current || exporting) return;
 
     setExporting(true);
     try {
-      // Convert all images to base64 to avoid CORS issues
-      const images = pitchRef.current.querySelectorAll('img');
-      const originalSrcs = [];
+      // Pre-load all team badges
+      const badgeImages = {};
+      const teamCodes = [...new Set(teamPlayers.map(p => p.team?.code))].filter(Boolean);
 
-      await Promise.all([...images].map(async (img, i) => {
-        originalSrcs[i] = img.src;
+      await Promise.all(teamCodes.map(async (code) => {
         try {
-          const response = await fetch(img.src, { mode: 'cors' });
-          const blob = await response.blob();
-          const base64 = await new Promise((resolve) => {
-            const reader = new FileReader();
-            reader.onloadend = () => resolve(reader.result);
-            reader.readAsDataURL(blob);
-          });
-          img.src = base64;
+          badgeImages[code] = await loadImage(`/fntsy/badges/t${code}.png`);
         } catch (e) {
-          // If fetch fails, try proxy
-          try {
-            const proxyUrl = `/fntsy/proxy.php?image=${encodeURIComponent(img.src)}`;
-            const response = await fetch(proxyUrl);
-            const blob = await response.blob();
-            const base64 = await new Promise((resolve) => {
-              const reader = new FileReader();
-              reader.onloadend = () => resolve(reader.result);
-              reader.readAsDataURL(blob);
-            });
-            img.src = base64;
-          } catch (e2) {
-            console.log('Could not convert image:', img.src);
-          }
+          console.log('Could not load badge:', code);
         }
       }));
 
-      const canvas = await html2canvas(pitchRef.current, {
-        backgroundColor: '#0a0a0a',
-        scale: 2,
-        useCORS: true,
-        allowTaint: true,
-        logging: false
-      });
+      // Get pitch dimensions
+      const rect = pitchRef.current.getBoundingClientRect();
+      const scale = 2;
 
-      // Restore original image sources
-      images.forEach((img, i) => {
-        img.src = originalSrcs[i];
-      });
+      // Create canvas
+      const canvas = document.createElement('canvas');
+      canvas.width = rect.width * scale;
+      canvas.height = rect.height * scale;
+      const ctx = canvas.getContext('2d');
+      ctx.scale(scale, scale);
+
+      // Draw pitch background (green gradient stripes)
+      const stripeHeight = rect.height / 12;
+      for (let i = 0; i < 12; i++) {
+        ctx.fillStyle = i % 2 === 0 ? '#1a472a' : '#1d5231';
+        ctx.fillRect(0, i * stripeHeight, rect.width, stripeHeight);
+      }
+
+      // Draw pitch markings
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
+      ctx.lineWidth = 2;
+
+      // Center circle (at top)
+      ctx.beginPath();
+      ctx.arc(rect.width / 2, 0, 60, 0, Math.PI * 2);
+      ctx.stroke();
+
+      // Penalty box
+      const boxWidth = rect.width * 0.6;
+      ctx.strokeRect((rect.width - boxWidth) / 2, rect.height - 100, boxWidth, 100);
+
+      // Goal box
+      const goalWidth = rect.width * 0.3;
+      ctx.strokeRect((rect.width - goalWidth) / 2, rect.height - 40, goalWidth, 40);
+
+      // Draw players
+      const playerEls = pitchRef.current.querySelectorAll('.builder-pitch__player, .builder-pitch__slot');
+
+      for (const playerEl of playerEls) {
+        const playerRect = playerEl.getBoundingClientRect();
+        const x = playerRect.left - rect.left;
+        const y = playerRect.top - rect.top;
+        const w = playerRect.width;
+        const h = playerRect.height;
+
+        // Draw card background
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
+        ctx.beginPath();
+        ctx.roundRect(x, y, w, h, 8);
+        ctx.fill();
+
+        // Get player data from element
+        const nameEl = playerEl.querySelector('.player-card__name, .builder-pitch__slot-pos');
+        const pointsEl = playerEl.querySelector('.player-card__points');
+        const playerId = playerEl.dataset?.playerId;
+
+        // Find the player data
+        const playerData = teamPlayers.find(p => String(p.id) === playerId);
+        const teamCode = playerData?.team?.code;
+
+        // Draw badge if available
+        if (teamCode && badgeImages[teamCode]) {
+          const badge = badgeImages[teamCode];
+          const badgeSize = 36;
+          ctx.drawImage(badge, x + (w - badgeSize) / 2, y + 8, badgeSize, badgeSize);
+        } else if (playerEl.classList.contains('builder-pitch__slot')) {
+          // Empty slot - draw plus icon
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+          ctx.font = '24px sans-serif';
+          ctx.textAlign = 'center';
+          ctx.fillText('+', x + w/2, y + 35);
+        }
+
+        // Draw name
+        if (nameEl) {
+          ctx.fillStyle = '#ffffff';
+          ctx.font = 'bold 9px sans-serif';
+          ctx.textAlign = 'center';
+          const name = nameEl.textContent?.toUpperCase() || '';
+          ctx.fillText(name.length > 10 ? name.slice(0, 10) + '.' : name, x + w/2, y + h - 18);
+        }
+
+        // Draw points
+        if (pointsEl) {
+          ctx.fillStyle = '#00ff87';
+          ctx.font = 'bold 11px sans-serif';
+          ctx.fillText(pointsEl.textContent || '', x + w/2, y + h - 5);
+        }
+      }
+
+      // Draw formation badge
+      ctx.fillStyle = '#daa520';
+      ctx.beginPath();
+      ctx.roundRect(8, rect.height - 28, 50, 20, 4);
+      ctx.fill();
+      ctx.fillStyle = '#0a0a0a';
+      ctx.font = 'bold 12px sans-serif';
+      ctx.textAlign = 'center';
+      const formation = `${positionCounts.DEF}-${positionCounts.MID}-${positionCounts.FWD}`;
+      ctx.fillText(formation, 33, rect.height - 14);
+
+      // Draw team name at top
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 14px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(currentTeam.name.toUpperCase(), rect.width / 2, 20);
 
       const link = document.createElement('a');
       link.download = `${currentTeam.name.replace(/\s+/g, '-').toLowerCase()}-gw${currentGameweek}.png`;
@@ -358,14 +699,26 @@ export default function TeamBuilder({ players, teams, currentGameweek, allFixtur
     return filtered;
   }, [playersWithPredictions, pickerPosition, filterTeam, searchQuery, sortBy]);
 
-  // Render empty slot
+  // Render starting player slot
   const renderSlot = (position, index) => {
-    const playersInPos = getPlayersInPosition(position);
+    // Before 15 players, use all teamPlayers; after 15, use only startingPlayers
+    const playersInPos = currentTeam.players.length < 15
+      ? teamPlayers.filter(p => p.position === position)
+      : getPlayersInPosition(position);
     const player = playersInPos[index];
 
     if (player) {
       return (
-        <div key={`${position}-${index}`} className="builder-pitch__player">
+        <div
+          key={`${position}-${index}`}
+          className={`builder-pitch__player ${draggedPlayer?.isFromBench ? 'drop-target' : ''}`}
+          data-player-id={player.id}
+          draggable
+          onDragStart={(e) => handleDragStart(e, player, false)}
+          onDragOver={handleDragOver}
+          onDrop={(e) => handleDropOnStarter(e, player)}
+          onDragEnd={() => setDraggedPlayer(null)}
+        >
           {currentTeam.captain === player.id && (
             <span className="builder-pitch__badge builder-pitch__badge--captain">C</span>
           )}
@@ -394,8 +747,28 @@ export default function TeamBuilder({ players, teams, currentGameweek, allFixtur
     );
   };
 
-  // Calculate formation string
-  const formation = `${positionCounts.DEF}-${positionCounts.MID}-${positionCounts.FWD}`;
+  // Render bench player
+  const renderBenchPlayer = (player, index) => {
+    if (!player) return null;
+    return (
+      <div
+        key={player.id}
+        className="builder-bench__player"
+        data-player-id={player.id}
+        draggable
+        onDragStart={(e) => handleDragStart(e, player, true)}
+        onDragEnd={() => setDraggedPlayer(null)}
+      >
+        <PlayerCard player={player} compact />
+        <div className="builder-bench__actions">
+          <button onClick={() => removePlayer(player.id)} title="Remove">×</button>
+        </div>
+      </div>
+    );
+  };
+
+  // Formation string from starting counts
+  const formation = `${startingCounts.DEF}-${startingCounts.MID}-${startingCounts.FWD}`;
 
   // Picker content (used in both modal and side panel)
   const pickerContent = (
@@ -575,8 +948,18 @@ export default function TeamBuilder({ players, teams, currentGameweek, allFixtur
         </div>
       </div>
 
-      {/* Squad count */}
+      {/* Squad count with formation selector */}
       <div className="builder-squad-count">
+        {currentTeam.players.length === 15 ? (
+          <Dropdown
+            value={currentTeam.formation || '3-4-3'}
+            options={FORMATIONS.map(f => ({ value: f.value, label: f.value }))}
+            onChange={changeFormation}
+            label="Formation"
+          />
+        ) : (
+          <span className="builder-squad-count__hint">Select 15 players</span>
+        )}
         <span className={positionCounts.GKP === 2 ? 'complete' : ''}>GK: {positionCounts.GKP}/2</span>
         <span className={positionCounts.DEF === 5 ? 'complete' : ''}>DEF: {positionCounts.DEF}/5</span>
         <span className={positionCounts.MID === 5 ? 'complete' : ''}>MID: {positionCounts.MID}/5</span>
@@ -587,8 +970,10 @@ export default function TeamBuilder({ players, teams, currentGameweek, allFixtur
       </div>
 
       {/* Pitch */}
-      <div className="builder-pitch" ref={pitchRef}>
-        <span className="builder-pitch__formation">{formation}</span>
+      <div className={`builder-pitch ${currentTeam.players.length < 15 ? 'builder-pitch--no-bench' : ''}`} ref={pitchRef}>
+        {currentTeam.players.length === 15 && (
+          <span className="builder-pitch__formation">{formation}</span>
+        )}
 
         <div className="builder-pitch__markings">
           <div className="builder-pitch__center-circle" />
@@ -596,22 +981,54 @@ export default function TeamBuilder({ players, teams, currentGameweek, allFixtur
           <div className="builder-pitch__goal-box" />
         </div>
 
-        <div className="builder-pitch__row builder-pitch__row--fwd">
-          {[0, 1, 2].map(i => renderSlot('FWD', i))}
-        </div>
-
-        <div className="builder-pitch__row builder-pitch__row--mid">
-          {[0, 1, 2, 3, 4].map(i => renderSlot('MID', i))}
-        </div>
-
-        <div className="builder-pitch__row builder-pitch__row--def">
-          {[0, 1, 2, 3, 4].map(i => renderSlot('DEF', i))}
-        </div>
-
-        <div className="builder-pitch__row builder-pitch__row--gkp">
-          {[0, 1].map(i => renderSlot('GKP', i))}
-        </div>
+        {currentTeam.players.length < 15 ? (
+          <>
+            {/* Show all 15 slots when building squad */}
+            <div className="builder-pitch__row builder-pitch__row--fwd">
+              {[0, 1, 2].map(i => renderSlot('FWD', i))}
+            </div>
+            <div className="builder-pitch__row builder-pitch__row--mid">
+              {[0, 1, 2, 3, 4].map(i => renderSlot('MID', i))}
+            </div>
+            <div className="builder-pitch__row builder-pitch__row--def">
+              {[0, 1, 2, 3, 4].map(i => renderSlot('DEF', i))}
+            </div>
+            <div className="builder-pitch__row builder-pitch__row--gkp">
+              {[0, 1].map(i => renderSlot('GKP', i))}
+            </div>
+          </>
+        ) : (
+          <>
+            {/* Show formation-based starting 11 */}
+            <div className="builder-pitch__row builder-pitch__row--fwd">
+              {Array.from({ length: formationConfig.fwd }, (_, i) => renderSlot('FWD', i))}
+            </div>
+            <div className="builder-pitch__row builder-pitch__row--mid">
+              {Array.from({ length: formationConfig.mid }, (_, i) => renderSlot('MID', i))}
+            </div>
+            <div className="builder-pitch__row builder-pitch__row--def">
+              {Array.from({ length: formationConfig.def }, (_, i) => renderSlot('DEF', i))}
+            </div>
+            <div className="builder-pitch__row builder-pitch__row--gkp">
+              {renderSlot('GKP', 0)}
+            </div>
+          </>
+        )}
       </div>
+
+      {/* Bench - only show when 15 players selected */}
+      {currentTeam.players.length === 15 && (
+        <div
+          className={`builder-bench ${draggedPlayer && !draggedPlayer.isFromBench ? 'drop-target' : ''}`}
+          onDragOver={handleDragOver}
+          onDrop={handleDropOnBench}
+        >
+          <span className="builder-bench__label">BENCH</span>
+          <div className="builder-bench__players">
+            {benchPlayers.map((player, index) => renderBenchPlayer(player, index))}
+          </div>
+        </div>
+      )}
 
       </div>{/* end builder-main */}
 
