@@ -19,7 +19,8 @@ $allowedEndpoints = [
     'bootstrap-static',
     'fixtures',
     'event',
-    'entry'
+    'entry',
+    'dream-team'
 ];
 
 // Validate endpoint

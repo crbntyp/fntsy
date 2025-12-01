@@ -563,3 +563,63 @@ export function getTeamUpcoming(fixtures, teamId, count = 5) {
     .sort((a, b) => new Date(a.kickoffTime) - new Date(b.kickoffTime))
     .slice(0, count);
 }
+
+// Hook to fetch Dream Team for a gameweek
+export function useDreamTeam(gameweek, allPlayers) {
+  const [dreamTeam, setDreamTeam] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    if (!gameweek || !allPlayers?.length) return;
+
+    async function fetchDreamTeam() {
+      try {
+        setLoading(true);
+        setError(null);
+
+        const res = await fetch(getApiUrl(`dream-team/${gameweek}/`));
+        if (!res.ok) throw new Error('Failed to fetch dream team');
+
+        const data = await res.json();
+
+        // Map player IDs to full player data
+        const squad = data.team.map(pick => {
+          const player = allPlayers.find(p => p.id === pick.element);
+          return {
+            ...player,
+            dreamTeamPoints: pick.points,
+            dreamTeamPosition: pick.position
+          };
+        }).filter(Boolean);
+
+        // Group by position
+        const gkp = squad.filter(p => p.position === 'GKP');
+        const def = squad.filter(p => p.position === 'DEF');
+        const mid = squad.filter(p => p.position === 'MID');
+        const fwd = squad.filter(p => p.position === 'FWD');
+
+        // Find top player
+        const topPlayer = allPlayers.find(p => p.id === data.top_player?.id);
+
+        setDreamTeam({
+          squad,
+          gkp,
+          def,
+          mid,
+          fwd,
+          topPlayer: topPlayer ? { ...topPlayer, points: data.top_player.points } : null,
+          totalPoints: squad.reduce((sum, p) => sum + p.dreamTeamPoints, 0)
+        });
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchDreamTeam();
+  }, [gameweek, allPlayers]);
+
+  return { dreamTeam, loading, error };
+}

@@ -287,6 +287,21 @@
   border: 2px solid var(--utd-gold);
 }
 
+.my-team-pitch__points {
+  position: absolute;
+  bottom: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--utd-gold);
+  color: var(--bg-base);
+  font-family: 'Geist Mono', monospace;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
+  z-index: 20;
+}
+
 /* Bench */
 .my-team-bench {
   display: flex;

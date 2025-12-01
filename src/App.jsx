@@ -1,8 +1,9 @@
 import { useState, useMemo, useEffect } from 'react';
-import { useFPLData, useMyTeam, getTopPlayersByPosition, getPlayersByTeam, getTeamUpcoming } from './hooks/useFPLData';
+import { useFPLData, useMyTeam, useDreamTeam, getTopPlayersByPosition, getPlayersByTeam, getTeamUpcoming } from './hooks/useFPLData';
 import PlayerCard from './components/PlayerCard';
 import ResultsTicker from './components/ResultsTicker';
 import MyTeam from './components/MyTeam';
+import DreamTeam from './components/DreamTeam';
 import TeamIdModal from './components/TeamIdModal';
 import Loading from './components/Loading';
 import StadiumBackground from './components/StadiumBackground';
@@ -40,6 +41,7 @@ function App() {
   const [filterDropdownOpen, setFilterDropdownOpen] = useState(false);
   const [teamDropdownOpen, setTeamDropdownOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [showDreamTeam, setShowDreamTeam] = useState(false);
 
   // User's FPL team ID from localStorage
   const [myTeamId, setMyTeamId] = useState(() => {
@@ -54,6 +56,9 @@ function App() {
     data?.players,
     data?.currentGameweek
   );
+
+  // Fetch dream team
+  const { dreamTeam } = useDreamTeam(data?.currentGameweek, data?.players);
 
   // Handle team ID submission
   const handleTeamIdSubmit = (id) => {
@@ -337,6 +342,12 @@ function App() {
           )}
           <button
             className="myteam-btn"
+            onClick={() => setShowDreamTeam(true)}
+          >
+            Dream Team
+          </button>
+          <button
+            className="myteam-btn"
             onClick={handleMyTeamClick}
           >
             {myTeamLoading ? 'Loading...' : 'My Team'}
@@ -370,6 +381,15 @@ function App() {
               <button
                 className="burger-menu__item"
                 onClick={() => {
+                  setShowDreamTeam(true);
+                  setMobileMenuOpen(false);
+                }}
+              >
+                Dream Team
+              </button>
+              <button
+                className="burger-menu__item"
+                onClick={() => {
                   handleMyTeamClick();
                   setMobileMenuOpen(false);
                 }}
@@ -398,6 +418,15 @@ function App() {
             isLive={isLive}
             onClose={() => setShowMyTeam(false)}
             onClearTeam={handleClearTeam}
+          />
+        )}
+
+        {/* Dream Team Modal */}
+        {showDreamTeam && dreamTeam && (
+          <DreamTeam
+            dreamTeam={dreamTeam}
+            gameweek={currentGameweek}
+            onClose={() => setShowDreamTeam(false)}
           />
         )}
 
