@@ -18,7 +18,8 @@ $endpoint = $_GET['endpoint'] ?? '';
 $allowedEndpoints = [
     'bootstrap-static',
     'fixtures',
-    'event'
+    'event',
+    'entry'
 ];
 
 // Validate endpoint
