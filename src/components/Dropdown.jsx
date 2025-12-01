@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import './Dropdown.css';
 
-export default function Dropdown({ value, options, onChange, label }) {
+export default function Dropdown({ value, options, onChange, label, fullWidth }) {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef(null);
 
@@ -28,13 +28,16 @@ export default function Dropdown({ value, options, onChange, label }) {
   }, []);
 
   return (
-    <div className="dropdown" ref={dropdownRef}>
+    <div className={`dropdown ${fullWidth ? 'dropdown--full' : ''}`} ref={dropdownRef}>
       {label && <span className="dropdown__label">{label}</span>}
       <button
         className={`dropdown__trigger ${isOpen ? 'open' : ''}`}
         onClick={() => setIsOpen(!isOpen)}
         type="button"
       >
+        {selectedOption?.icon && (
+          <img src={selectedOption.icon} alt="" className="dropdown__icon" />
+        )}
         <span className="dropdown__value">{selectedOption?.label}</span>
         <svg
           className="dropdown__arrow"
@@ -61,6 +64,9 @@ export default function Dropdown({ value, options, onChange, label }) {
               }}
               type="button"
             >
+              {option.icon && (
+                <img src={option.icon} alt="" className="dropdown__option-icon" />
+              )}
               {option.label}
               {option.value === value && (
                 <svg

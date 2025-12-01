@@ -303,15 +303,18 @@ export function useFPLData() {
             transfersOut: p.transfers_out_event,
             costChange: p.cost_change_event / 10,
             costChangeSeason: p.cost_change_start / 10,
-            // Photo URLs to try in order (premierleague25 is the new 2025 CDN path)
+            // Photo URLs to try in order (premierleague25 CDN is more reliable for newer players)
             photoUrls: (() => {
               const photoId = p.photo?.replace('.jpg', '').replace('.png', '');
               return [
-                `https://resources.premierleague.com/premierleague/photos/players/250x250/p${p.code}.png`,
-                photoId ? `https://resources.premierleague.com/premierleague25/photos/players/250x250/${photoId}.png` : null,
+                // Try premierleague25 with photoId first (most reliable for new players)
                 photoId ? `https://resources.premierleague.com/premierleague25/photos/players/110x140/${photoId}.png` : null,
-                `https://resources.premierleague.com/premierleague25/photos/players/250x250/p${p.code}.png`,
+                photoId ? `https://resources.premierleague.com/premierleague25/photos/players/250x250/${photoId}.png` : null,
+                // Then try old CDN with p+code
+                `https://resources.premierleague.com/premierleague/photos/players/250x250/p${p.code}.png`,
+                // Then premierleague25 with p+code
                 `https://resources.premierleague.com/premierleague25/photos/players/110x140/p${p.code}.png`,
+                `https://resources.premierleague.com/premierleague25/photos/players/250x250/p${p.code}.png`,
               ].filter(Boolean);
             })()
           }));
@@ -581,6 +584,157 @@ export function getTeamFDR(fixtures, teamId) {
         kickoffTime: f.kickoffTime
       };
     });
+}
+
+// Calculate predicted points for a player based on upcoming fixture
+export function calculatePredictedPoints(player, fixtures, currentGameweek) {
+  if (!player || !fixtures?.length) return { predicted: 0, confidence: 0, breakdown: {} };
+
+  // Get next fixture for this player's team
+  const nextFixture = fixtures
+    .filter(f => !f.finished && f.gameweek >= currentGameweek &&
+      (f.homeTeam?.id === player.teamId || f.awayTeam?.id === player.teamId))
+    .sort((a, b) => a.gameweek - b.gameweek)[0];
+
+  if (!nextFixture) return { predicted: 0, confidence: 0, breakdown: {} };
+
+  const isHome = nextFixture.homeTeam?.id === player.teamId;
+  const opponent = isHome ? nextFixture.awayTeam : nextFixture.homeTeam;
+  const difficulty = isHome ? nextFixture.homeDifficulty : nextFixture.awayDifficulty;
+
+  // Base expected points from form and PPG
+  const baseExpected = (player.form * 0.6) + (player.pointsPerGame * 0.4);
+
+  // Fixture difficulty modifier (FDR 1-5 -> multiplier 1.3-0.7)
+  const fdrModifier = 1.4 - (difficulty * 0.15);
+
+  // Minutes probability (based on chance of playing)
+  const minutesProb = (player.chanceOfPlaying ?? 100) / 100;
+
+  // Position-specific calculations
+  let predicted = 0;
+  let breakdown = {};
+
+  const position = player.position;
+
+  if (position === 'GKP') {
+    // GKP: Clean sheet probability + save points
+    // Opponent attack strength vs team defence
+    const oppAttack = isHome ? (opponent?.attackAway || 1000) : (opponent?.attackHome || 1000);
+    const ownDefence = isHome ? (player.team?.defenceHome || 1000) : (player.team?.defenceAway || 1000);
+
+    // Clean sheet probability (higher own defence, lower opp attack = higher CS chance)
+    const csProb = Math.min(0.5, Math.max(0.05, (ownDefence - oppAttack + 200) / 800));
+    const csPoints = csProb * 4; // 4 points for CS
+
+    // Base appearance points
+    const appearPoints = 2 * minutesProb;
+
+    // Save points estimate (more saves vs stronger attacks)
+    const savePoints = Math.min(2, (oppAttack / 1200) * 1.5);
+
+    predicted = (appearPoints + csPoints + savePoints) * fdrModifier;
+    breakdown = { appearance: appearPoints, cleanSheet: csPoints, saves: savePoints, fdrMod: fdrModifier };
+
+  } else if (position === 'DEF') {
+    // DEF: Clean sheet + goal threat from set pieces
+    const oppAttack = isHome ? (opponent?.attackAway || 1000) : (opponent?.attackHome || 1000);
+    const ownDefence = isHome ? (player.team?.defenceHome || 1000) : (player.team?.defenceAway || 1000);
+
+    const csProb = Math.min(0.45, Math.max(0.05, (ownDefence - oppAttack + 200) / 800));
+    const csPoints = csProb * 4;
+
+    const appearPoints = 2 * minutesProb;
+
+    // Goal/assist potential from xGI
+    const attackPoints = (player.xGI / Math.max(1, player.minutes / 90)) * 6 * minutesProb;
+
+    // Bonus potential based on BPS
+    const bonusPoints = Math.min(1, (player.bps / Math.max(1, player.minutes / 90)) / 30);
+
+    predicted = (appearPoints + csPoints + attackPoints + bonusPoints) * fdrModifier;
+    breakdown = { appearance: appearPoints, cleanSheet: csPoints, attacking: attackPoints, bonus: bonusPoints };
+
+  } else if (position === 'MID') {
+    // MID: Goals and assists weighted heavily
+    const oppDefence = isHome ? (opponent?.defenceAway || 1000) : (opponent?.defenceHome || 1000);
+    const defenceModifier = Math.max(0.7, Math.min(1.3, 1100 / oppDefence));
+
+    const appearPoints = 2 * minutesProb;
+
+    // xG -> goals (5 pts each for mids)
+    const xGPer90 = player.xG / Math.max(1, player.minutes / 90);
+    const goalPoints = xGPer90 * 5 * defenceModifier * minutesProb;
+
+    // xA -> assists (3 pts each)
+    const xAPer90 = player.xA / Math.max(1, player.minutes / 90);
+    const assistPoints = xAPer90 * 3 * defenceModifier * minutesProb;
+
+    // Creativity/threat bonus
+    const ictBonus = Math.min(1.5, (player.ictIndex / Math.max(1, player.minutes / 90)) / 8);
+
+    predicted = (appearPoints + goalPoints + assistPoints + ictBonus) * fdrModifier;
+    breakdown = { appearance: appearPoints, goals: goalPoints, assists: assistPoints, ict: ictBonus };
+
+  } else if (position === 'FWD') {
+    // FWD: Goals heavily weighted
+    const oppDefence = isHome ? (opponent?.defenceAway || 1000) : (opponent?.defenceHome || 1000);
+    const defenceModifier = Math.max(0.7, Math.min(1.3, 1100 / oppDefence));
+
+    const appearPoints = 2 * minutesProb;
+
+    // xG -> goals (4 pts each for fwds)
+    const xGPer90 = player.xG / Math.max(1, player.minutes / 90);
+    const goalPoints = xGPer90 * 4 * defenceModifier * minutesProb;
+
+    // xA -> assists (3 pts each)
+    const xAPer90 = player.xA / Math.max(1, player.minutes / 90);
+    const assistPoints = xAPer90 * 3 * defenceModifier * minutesProb;
+
+    // Threat bonus (forwards get more from high threat)
+    const threatBonus = Math.min(1.5, (player.threat / Math.max(1, player.minutes / 90)) / 50);
+
+    predicted = (appearPoints + goalPoints + assistPoints + threatBonus) * fdrModifier;
+    breakdown = { appearance: appearPoints, goals: goalPoints, assists: assistPoints, threat: threatBonus };
+  }
+
+  // Apply form trend adjustment
+  const formTrend = player.form > player.pointsPerGame ? 1.1 : 0.95;
+  predicted *= formTrend;
+
+  // Blend with historical (base expected) for stability
+  predicted = (predicted * 0.7) + (baseExpected * 0.3);
+
+  // Confidence based on minutes played and data quality
+  const confidence = Math.min(100, Math.max(20,
+    (player.minutes / 30) + // More minutes = more confidence
+    (player.form > 0 ? 20 : 0) + // Has recent form
+    (player.xGI > 0 ? 10 : 0) // Has xG data
+  ));
+
+  return {
+    predicted: Math.round(predicted * 10) / 10,
+    confidence: Math.round(confidence),
+    nextOpponent: opponent,
+    isHome,
+    difficulty,
+    breakdown
+  };
+}
+
+// Helper to add predictions to all players
+export function addPredictions(players, fixtures, currentGameweek) {
+  return players.map(player => {
+    const prediction = calculatePredictedPoints(player, fixtures, currentGameweek);
+    return {
+      ...player,
+      predictedPoints: prediction.predicted,
+      predictionConfidence: prediction.confidence,
+      nextOpponent: prediction.nextOpponent,
+      nextIsHome: prediction.isHome,
+      nextDifficulty: prediction.difficulty
+    };
+  });
 }
 
 // Hook to fetch Dream Team for a gameweek

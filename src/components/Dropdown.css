@@ -5,6 +5,14 @@
   gap: var(--space-sm);
 }
 
+.dropdown--full {
+  width: 100%;
+}
+
+.dropdown--full .dropdown__trigger {
+  width: 100%;
+}
+
 .dropdown__label {
   font-size: 12px;
   font-weight: 600;
@@ -35,6 +43,12 @@
   border-color: var(--utd-red);
 }
 
+.dropdown__icon {
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
+}
+
 .dropdown__value {
   font-family: 'Geist Mono', monospace;
   font-size: 12px;
@@ -57,12 +71,13 @@
   top: calc(100% + 4px);
   right: 0;
   min-width: 100%;
+  max-height: 200px;
+  overflow-y: auto;
   background: var(--bg-base);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: var(--radius-sm);
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
   z-index: 100;
-  overflow: hidden;
   animation: dropdownFadeIn 0.15s ease;
 }
 
@@ -80,7 +95,7 @@
 .dropdown__option {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  gap: var(--space-sm);
   width: 100%;
   padding: 6px 10px;
   background: none;
@@ -95,6 +110,12 @@
   text-align: left;
 }
 
+.dropdown__option-icon {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+}
+
 .dropdown__option:hover {
   background: var(--bg-hover);
   color: var(--text-primary);
@@ -106,4 +127,5 @@
 
 .dropdown__check {
   color: var(--utd-red);
+  margin-left: auto;
 }

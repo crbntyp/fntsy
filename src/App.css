@@ -246,6 +246,12 @@
   background: rgba(255, 255, 255, 0.1);
 }
 
+.myteam-btn--active {
+  border-color: var(--utd-gold);
+  background: rgba(218, 165, 32, 0.15);
+  color: var(--utd-gold);
+}
+
 /* Burger Menu - hidden on desktop */
 .burger-menu {
   display: none;
@@ -329,6 +335,11 @@
 
 .burger-menu__item:not(:last-child) {
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.burger-menu__item--active {
+  color: var(--utd-gold);
+  background: rgba(218, 165, 32, 0.1);
 }
 
 /* Sort Buttons */

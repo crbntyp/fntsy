@@ -6,6 +6,7 @@ import MyTeam from './components/MyTeam';
 import DreamTeam from './components/DreamTeam';
 import FDRCalendar from './components/FDRCalendar';
 import TeamIdModal from './components/TeamIdModal';
+import TeamBuilder from './components/TeamBuilder';
 import Loading from './components/Loading';
 import StadiumBackground from './components/StadiumBackground';
 import './App.css';
@@ -34,7 +35,7 @@ const getSortOptions = (isLive, currentGW) => ({
 
 function App() {
   const { data, loading, error, isLive, lastUpdated } = useFPLData();
-  const [viewMode, setViewMode] = useState('top'); // 'top' or 'team'
+  const [viewMode, setViewMode] = useState('top'); // 'top', 'team', or 'builder'
   const [selectedTeamId, setSelectedTeamId] = useState(null);
   const [sortBy, setSortBy] = useState('livePoints');
   const [showMyTeam, setShowMyTeam] = useState(false);
@@ -120,7 +121,10 @@ function App() {
   useEffect(() => {
     const handleHashChange = () => {
       const hash = window.location.hash.slice(1).toLowerCase();
-      if (hash && data?.teams) {
+      if (hash === 'builder') {
+        setViewMode('builder');
+        setSelectedTeamId(null);
+      } else if (hash && data?.teams) {
         const team = data.teams.find(t => t.shortName.toLowerCase() === hash);
         if (team) {
           setViewMode('team');
@@ -204,7 +208,8 @@ function App() {
           </div>
         </header>
 
-        {/* Controls */}
+        {/* Controls - hide on builder */}
+        {viewMode !== 'builder' && (
         <div className={`controls ${viewMode === 'team' ? 'controls--team-view' : ''}`}>
             <div className="controls__left">
               {/* Sort buttons - left group (desktop, only on top view) */}
@@ -332,6 +337,7 @@ function App() {
               )}
             </div>
           </div>
+        )}
 
         {/* Top right buttons - desktop */}
         <div className="top-right-btns top-right-btns--desktop">
@@ -343,6 +349,12 @@ function App() {
               ← Back
             </button>
           )}
+          <button
+            className={`myteam-btn ${viewMode === 'builder' ? 'myteam-btn--active' : ''}`}
+            onClick={() => { window.location.hash = 'builder'; }}
+          >
+            Builder
+          </button>
           <button
             className="myteam-btn"
             onClick={() => setShowDreamTeam(true)}
@@ -381,6 +393,15 @@ function App() {
                   Home
                 </button>
               )}
+              <button
+                className={`burger-menu__item ${viewMode === 'builder' ? 'burger-menu__item--active' : ''}`}
+                onClick={() => {
+                  window.location.hash = 'builder';
+                  setMobileMenuOpen(false);
+                }}
+              >
+                Builder
+              </button>
               <button
                 className="burger-menu__item"
                 onClick={() => {
@@ -435,7 +456,15 @@ function App() {
 
         {/* Main Content */}
         <main className="main">
-          {displayData.type === 'top' ? (
+          {viewMode === 'builder' ? (
+            <TeamBuilder
+              players={players}
+              teams={teams}
+              currentGameweek={currentGameweek}
+              allFixtures={data?.allFixtures}
+              onBack={handleBackToTop}
+            />
+          ) : displayData.type === 'top' ? (
             // Top Players View
             <>
               {['GKP', 'DEF', 'MID', 'FWD'].map(position => {
