@@ -1,4 +1,8 @@
 <?php
+// Suppress PHP errors from appearing in output - always return valid JSON
+error_reporting(0);
+ini_set('display_errors', 0);
+
 // Simple FPL API proxy to bypass CORS
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: GET');
