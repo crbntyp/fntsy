@@ -3,16 +3,16 @@
 /* Britanica font for crbntyp logo */
 @font-face {
   font-family: "Britanica";
-  src: url("/fntsyf/fonts/britanica-bold.woff2") format("woff2"),
-       url("/fntsyf/fonts/britanica-bold.woff") format("woff");
+  src: url("/fntsy/fonts/britanica-bold.woff2") format("woff2"),
+       url("/fntsy/fonts/britanica-bold.woff") format("woff");
   font-weight: 700;
   font-style: normal;
   font-display: swap;
 }
 @font-face {
   font-family: "Britanica";
-  src: url("/fntsyf/fonts/britanica-extra-bold.woff2") format("woff2"),
-       url("/fntsyf/fonts/britanica-extra-bold.woff") format("woff");
+  src: url("/fntsy/fonts/britanica-extra-bold.woff2") format("woff2"),
+       url("/fntsy/fonts/britanica-extra-bold.woff") format("woff");
   font-weight: 800;
   font-style: normal;
   font-display: swap;
